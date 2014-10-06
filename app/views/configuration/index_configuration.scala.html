@@ -1,0 +1,10 @@
+@(title: String)(content: Html)
+
+@main(title + " - Configuration ") {
+	@configuration_subnav()
+	
+	@content    
+<script type="text/javascript">
+	$('#nav_conf').addClass('active');
+</script>
+}

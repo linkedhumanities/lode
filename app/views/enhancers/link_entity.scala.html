@@ -1,0 +1,274 @@
+@(source : String, desc : models.entity.EntityContainer, proposals :  List[models.entity.EntityContainer], method : Int)
+
+@import views.html.helpers._
+
+@main(desc.getShortURI() + " - Linking (" + method +")") {
+
+<div class="page-header">
+	<span id="link_method" data-mode="@method"></span>
+	<h1 style="text-align: center;">
+		<a href="/content/entity/@desc.getShortURI()" data-toggle="tooltip" data-placement="bottom" title="Go to entity overview" style="float:left;"><img style="height: 35px; margin-right: 10px; margin-bottom: 5px;" src="@routes.Assets.at("images/leftarrowsmall.png")"/></a>
+		<span>Link <a id="instance" class="text-info" style="text-decoration: none;" data-entity="@desc.getShortURI()" href="/content/entity/@desc.getShortURI()">@if(desc.getReadableNames().size()==0) {
+			@desc.getShortURI()
+		} else {
+			@desc.getInstanceName()
+		}</a> to a <span id="source" class="text-success">@source</span> resource</span>
+		<a id="gotoenhancer" href="/enhance/@desc.getShortURI()/dbpedia" data-toggle="tooltip" data-placement="bottom" title="Go to enhancer overview" style="float:right; 
+		@if(!desc.getStates().contains(models.states.LinkingState.valueOf(source.toUpperCase()))) {
+			display:none;
+    	}"><img style="height: 35px; margin-right: 10px; margin-bottom: 5px;" src="@routes.Assets.at("images/rightarrowsmall.png")"/></a>	
+	</h1>	
+</div>
+
+
+<div class="row">
+	<div class="span6">
+		<div class="alert alert-info">
+			<h4>local</h4>
+    	</div>
+    	<div id="@desc.getShortURI()" data-uri-short="@desc.getShortURI()" data-uri-long="@desc.getURI().getValue()" class="alert alert-success drop">
+    		<h5 style="display: inline;">@desc.getShortURI()</h5><span id="linkingstate"><small id="alreadyexists" style="
+    		@if(!desc.getStates().contains(models.states.LinkingState.valueOf(source.toUpperCase()))) {
+				display:none;
+    		}"> (has already a same as relation to a @source resource)</small></span>
+    	</div>
+    	<div id="@desc.getShortURI()-data" style="padding: 0 1.5em;">
+    		@for(pair <- desc.getProperties()) {
+	  			@displayProperty(pair.getPropertyURI(), pair)
+	  		}		
+	  	</div>
+	</div>
+
+	<div class="span6">
+		<div class="alert alert-info">
+			<h4>@source</h4>
+		</div>		
+		<div id="proposals" style="min-height: @{58*settings.Settings.L_INSTANCES}px;"> 
+			<div id="proposals-entries">
+				@for(ec <- proposals) {
+				<div id="@ec.getShortURI()" data-uri-short="@desc.getShortURI()" data-uri-long="@ec.getURI().getValue()" class="alert alert-success drag" style="cursor:pointer;">
+					<span style="font-weight:bold">@ec.getShortURI()</span>
+					<span style="float: right;"><button id="button-@ec.getShortURI()" type="button" class="btn btn-mini btn-info" onclick="showMore('@ec.getShortURI()', this)" data-toggle="button" rel="popover" data-html="true" data-content="@utils.ViewUtils.compareDescriptionDialog(desc, ec)" data-original-title="Description" data-placement="bottom">Show More</button></span>
+				</div>			
+		    	<div id="content-@ec.getShortURI()" style="padding: 0 1.5em; display:none;">
+					@for(i <- 0 to ec.getProperties().size()-1) {
+	 					@displayProperty(ec.getProperties().get(i).getPropertyURI(), ec.getProperties().get(i))
+	 				}
+		  		</div>
+				}
+			</div>	
+		</div>
+		@if(proposals.size() > 4) {
+		<div class="alert alert-info" style="height: 30px; padding-left: 15px; padding-right: 15px;">
+			<span style="float: left;"><button id="linker-proposals-previous" type="button"  class="btn btn-primary" onclick="changePage(this)" data-page="0" style="width: 137px; display:none;">Back</button></span>
+			<span style="float: right;"><button id="linker-proposals-next" type="button"  class="btn btn-primary" onclick="changePage(this)" data-page="2" style="width: 137px;">More Proposals</button></span>
+		</div>
+		}
+	</div>
+</div>
+
+@linkerDialog("instance", settings.Settings.REL_INSTANCE)
+
+@descriptionDialog()
+
+@decisionDialog(desc.getShortURI())
+
+
+<script type="text/javascript">
+	$('#nav_content').addClass('active');	
+	
+    $('.dropdown-toggle').dropdown()
+        
+    $( "#descision-help" )
+    	.mouseenter(function(event) {
+    		document.getElementById('decision-help-info').style.top = event.pageY+'px';
+    		document.getElementById('decision-help-info').style.left = event.pageX+'px';
+    		document.getElementById('decision-help-info').style.display = '';
+	    })
+    	.mouseleave(function() {
+    		document.getElementById('decision-help-info').style.display = 'none';
+	    })
+    	.mousemove(function(event) {
+    		document.getElementById('decision-help-info').style.top = event.pageY+'px';
+    		document.getElementById('decision-help-info').style.left = event.pageX+'px';
+    	});
+    
+	var local,remote,relation;
+	$(function() {
+		$( ".drag" ).draggable({ revert: true });
+
+		$( ".drop" ).droppable({
+			activeClass: "ui-state-hover",
+			hoverClass: "ui-state-active",
+			drop: function( event, ui ) {
+				local=$(this).attr('id');
+				remote=ui.draggable.attr('id');
+			    $('#linker-valueA-short-instance').text(local);
+			    changeTooltipContent('#linker-valueA-long-instance', toHtmlLink($(this).attr('data-uri-long')));			    
+			    $('#linker-valueB-short-instance').text(remote);
+			    changeTooltipContent('#linker-valueB-long-instance', toHtmlLink(ui.draggable.attr('data-uri-long')));	
+			    			  			    
+			    // set default
+			    if($('#linkingstate').html().indexOf('display:none;') > 0) {
+			    	$('#owl\\:sameAs').attr('style','');			    	
+			   	 	changeTooltipContent('#linker-relation-uri-instance', toHtmlLinkShort('http://www.w3.org/2002/07/owl#sameAs','owl:sameAs'));			 
+			   	 	$('#linker-relation-text-instance').html('is the same as');
+			    	relation='owl:sameAs';			    
+			    } else {
+			    	$('#owl\\:sameAs').attr('style','display: none;');			   	 	
+			   	 	changeTooltipContent('#linker-relation-uri-instance', toHtmlLinkShort('http://www.w3.org/2002/07/owl#differentFrom','owl:differentFrom'));	
+			   	 	$('#linker-relation-text-instance').html('is different from');
+			    	relation='owl:differentFrom';
+			    }
+			    
+			    $('#linkerDialog-instance').modal('show');
+				$(lodetooltip());
+			}
+		});
+		
+		$("#submitLinkerButton-instance").click(function() {
+			  $('#cancelLinkerButton-instance').attr('disabled', 'disabled').addClass('disabled');
+			  $('#submitLinkerButton-instance').button('loading');			  
+			  
+			  $.get("/link/setlink", { local: local, remote: remote, relation: relation },
+					   function(data){
+				  			if(relation == 'owl:sameAs') {
+				  				$('#gotoenhancer').attr('style','float:right');
+				  				$('#alreadyexists').attr('style','');
+				  			}
+				  			
+				  			document.getElementById(local+'-data').innerHTML = data;				  
+				  			$('#linkerDialog-instance').modal('hide');
+				  			
+				  			if(relation == 'owl:sameAs') {
+				  				$('#decisiondialog').modal('show');
+				  			}
+					   });
+		});	
+		
+		$('#linkerDialog-instance').on('hidden', function () {
+			   $('#cancelLinkerButton-instance').button('reset');
+			   $('#submitLinkerButton-instance').button('reset');
+		})	
+	});
+		
+	function showMore (id, button) {	
+			if(document.getElementById('content-'+id).style.display!="none") {
+				$('#button-'+id.replace(/(:|\.)/g,'\\$1')).popover('destroy');
+				$('#content-'+id.replace(/(:|\.)/g,'\\$1')).fadeOut('slow', function() {
+            		// Animation complete.            		            		
+            	});
+			} else {
+				$('#button-'+id.replace(/(:|\.)/g,'\\$1')).popover('show');  		       	
+      			$('#content-'+id.replace(/(:|\.)/g,'\\$1')).fadeIn('slow', function() {
+            		// Animation complete.               		       		
+            	});
+            } 
+  	}
+  	
+  	function showDescription (id1, desc1, id2, desc2) {
+  		$('#descModal').modal('show');
+  		$('#descLocalLabel').text(id1);   		
+  		$('#descLocal').text(desc1);
+  		$('#descRemoteLabel').text(id2);
+  		$('#descRemote').text(desc2);	
+  	}
+  	
+	function setLinkerRelation (data) {		
+		var shortURI = $(data).attr('data-uri-short');
+		var longURI = $(data).attr('data-uri-long');
+		
+		$('#linker-relation-text-instance').attr('data-uri-short', shortURI);
+		$('#linker-relation-text-instance').attr('data-uri-long', longURI);
+		
+		changeTooltipContent('#linker-relation-uri-instance', toHtmlLinkShort(longURI, shortURI)); 
+		$('#linker-relation-text-instance').text(data.innerHTML);	
+		
+		relation = shortURI;
+	}	
+	
+	function changePage(data) {
+		var id = $( '#instance' ).attr('data-entity');		
+		var source = document.getElementById('source').innerHTML;
+		var loadpage = data.getAttribute('data-page');
+		var page = Number(document.getElementById('linker-proposals-previous').getAttribute('data-page'));
+		var method = $( '#link_method' ).attr('data-mode');
+		var direction = 'up';	
+		
+		if(data.id == 'linker-proposals-next') {
+			document.getElementById('linker-proposals-previous').setAttribute('data-page', page+1);
+			document.getElementById('linker-proposals-next').setAttribute('data-page', page+3);
+			
+			$('#linker-proposals-previous').attr('disabled', 'disabled').addClass('disabled');
+			$('#linker-proposals-next').button('loading');
+		}
+		
+		if(data.id == 'linker-proposals-previous') {			
+			document.getElementById('linker-proposals-previous').setAttribute('data-page', page-1);
+			document.getElementById('linker-proposals-next').setAttribute('data-page', page+1);
+			
+			$('#linker-proposals-next').attr('disabled', 'disabled').addClass('disabled');
+			$('#linker-proposals-previous').button('loading');
+			
+			direction = 'down'
+		}
+		
+		$('#proposals-entries').hide('drop', {
+    		direction : direction,
+    		complete: function() {
+   	 			document.getElementById('proposals').innerHTML = "<div style=\"text-align: center; padding-top: 45px; padding-bottom: 65px;\"><img style=\"padding: 50px;\" width=\"80\" height=\"80\" src=\"/assets/images/ajax_loader_gray_512.gif\"></img></div>"	
+    		}
+    	}, 300);
+		
+	  	$.get("/link/more", { id: id, source: source, pagenumber: loadpage, method: method },
+			   function(data){
+	  		   		document.getElementById('proposals').innerHTML = data;
+	  		
+	  		   		if(direction == 'down') {
+	  		   			direction = 'up';
+	  		   		} else {
+	  		   			direction = 'down';
+	  		   		}
+	  		   			  		   		
+	  				$('#proposals-entries').show('drop', {
+	  		    		direction : direction
+	  		    	}, 300);
+	  		   		
+	  		   		if(Number(document.getElementById('linker-proposals-previous').getAttribute('data-page')) != 0) {
+	  		   			document.getElementById('linker-proposals-previous').style.display = '';
+	  		   		} else {
+	 					document.getElementById('linker-proposals-previous').style.display = 'none';
+	  		   		}
+	  			  		   		
+	  		   		if(data.indexOf('data-info="complete"') == -1) {
+	  		   			document.getElementById('linker-proposals-next').style.display = '';
+	  		   		} else {
+	 					document.getElementById('linker-proposals-next').style.display = 'none';
+	  		   		}
+	  		   		
+	  		   		$('#linker-proposals-previous').button('reset');
+	  		   		$('#linker-proposals-next').button('reset');
+	  		   		
+	  		   		$( ".drag" ).draggable({ revert: true });	
+	  		   		
+	  		   		$(lodetooltip());
+			   });
+	}
+		
+	function changeTooltipContent(element, content)
+	{
+    	$(element).prop("title",content);
+    	$(lodetooltip());
+	}
+	
+    function toHtmlLink(uri)
+    {
+    	return toHtmlLinkShort(uri, uri)
+    }
+    
+    function toHtmlLinkShort(uri1, uri2)
+    {
+    	return "<b><a href='" + uri1 + "' style='color: #FFFFFF; text-decoration:none;' target='_blank'>" + uri2 + "</a></b>";
+    }
+</script>
+}

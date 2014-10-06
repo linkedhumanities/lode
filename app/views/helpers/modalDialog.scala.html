@@ -1,0 +1,16 @@
+@(title : String, closeText : String)
+
+<!-- Modal -->
+<div class="modal hide fade" id="myModal" aria-hidden="true">
+	<div class="modal-header">
+		<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+		<h3 id="myModalLabel">@title</h3>
+	</div>
+	<div class="modal-body">
+		<p id="dialogText"></p>
+	</div>
+	<div class="modal-footer">
+		<button class="btn" data-dismiss="modal" aria-hidden="true">cancel</button>
+		<button id="submitButton" class="btn btn-primary">@closeText</button>
+	</div>
+</div>

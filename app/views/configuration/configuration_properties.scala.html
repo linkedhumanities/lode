@@ -1,0 +1,99 @@
+@(properties: Map[String,Map[String, Map[String, String]]], sortedURI : Map[String, List[String]])
+
+@index_configuration("Properties") {
+<div class="alert alert-info">
+    	<strong>Info: </strong>This page is under construction and might not work. It is not a key component of LODE.
+</div>
+<form class="form-inline">
+	<label class="bold">Search a property: </label>
+	<input id="propSearchInput" class="span2" type="text">
+</form>
+
+<hr>
+
+<div class="row-fluid">
+  <div class="span3"> 
+	@for(property <- properties.keySet()) {
+		@showProperties(property)
+	}
+  </div>
+  <div class="span9">	
+  	<h4>Configure Property</h4>	
+  	<div id="propertyConfig">Select a property!</div>  	
+  </div>
+</div><!--/row-->  
+    
+<script type="text/javascript">
+	var lastLoad = new Date().getTime();
+	$('#nav_conf_properties').addClass('active');
+	$('a').tooltip();
+	
+	function checkEnter(e){
+		 e = e || event;
+		 var txtArea = /textarea/i.test((e.target || e.srcElement).tagName);
+		 return txtArea || (e.keyCode || e.which || e.charCode || 0) !== 13;
+	}
+	document.querySelector('form').onkeypress = checkEnter;	
+	var url;
+	$('a.property').click(function () {
+		resetPropertyView(0);
+		url = $(this).attr('data-original-title');		
+		$(this).addClass('bold');
+		$.get("/conf/properties/show", { property: $.trim(url), lastLoad: lastLoad},
+			function(data) {
+				if (data['lastLoad'] == lastLoad) {
+					$('#propertyConfig').html(data['main']);
+				} else {
+					alert('ajax response was too late...');
+				}
+		 	}
+		);
+	});
+	
+	$("#propSearchInput").keyup(function() {
+		resetPropertyView(1);
+		var query =$(this).val();
+		console.log(query);
+		$('a.property').each(function() {
+			var text = $.trim($(this).text());
+			var data = $.trim($(this).attr('data-original-title'));
+		
+			if (text.indexOf(query) == -1 && data.indexOf(query) == -1){
+				$(this).parent().hide();
+			} else {
+				$(this).parent().show();
+			}
+			
+		});
+	});
+	
+	function resetPropertyView(x){
+		lastLoad = new Date().getTime();
+		$('a.property').removeClass('bold');
+		switch (x) {
+			case 0:
+				$('#propertyConfig').html('Loading...');
+				break;
+			case 1:
+			default:
+				$('#propertyConfig').html('Select a property!');
+				break;
+		}
+	}
+</script>
+}
+
+
+
+@showProperties(name : String) = {
+	@if(!properties.get(name).isEmpty()){
+		<h4>@name</h4>	@**(@properties.get(name).size())**@
+		<ul>
+		@for(uri <- sortedURI.get(name)){
+			<li><a class="property" data-toggle="tooltip" data-placement="right" title="@properties.get(name).get(uri).get("uri")">
+					@properties.get(name).get(uri).get("prefix"):@properties.get(name).get(uri).get("localName")
+			</a></li>	
+		}
+		</ul>
+	}	
+}

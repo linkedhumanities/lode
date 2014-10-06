@@ -1,0 +1,20 @@
+@(examples: List[Array[String]])
+
+<table class="table">
+<thead>
+	<tr>
+		<th>subject</th>
+		<th>predicate</th>
+		<th>object</th>
+	</tr>
+</thead>
+<tbody>
+	@for(ex <- examples){
+		<tr>
+			<td>@ex(0)</td>
+			<td>@ex(1)</td>
+			<td>@ex(2)</td>
+		</tr>
+	}
+</tbody>
+</table>

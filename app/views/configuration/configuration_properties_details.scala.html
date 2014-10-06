@@ -1,0 +1,59 @@
+@(propertyName: String, basicInfo: Map[String,String])
+
+
+<div class="row-fluid">
+	<div class="span12">
+		<span class="label label-info">@propertyName</span>
+		<h5>General Information</h5>
+		<dl class="dl-horizontal">
+			<dt>full URI</dt>
+			<dd>@basicInfo.get("uri")</dd>
+			<dt>abbr. uri</dt>
+			<dd>@basicInfo.get("abbr")</dd>
+			<dt>type</dt>
+			<dd>@basicInfo.get("type")</dd>
+			<dt>domain</dt>
+			<dd>@basicInfo.get("domain")</dd>
+			<dt>range</dt>
+			<dd>@basicInfo.get("range")</dd>
+			<dt>occurences</dt>
+			<dd>@basicInfo.get("count")</dd>
+		</dl>
+		<hr>
+		<h6>TODO - List</h6>
+		<ul>
+			<li>configure view type (image, text, etc.), length (?), size
+				(?), disable (do not show this property)</li>
+			<li>show all triples (filter possible) in which the property
+				occurs</li>
+			<li>show information of relation storem e.g. other equal
+				properties</li>
+			<li>add a remove function for triple or the whole property</li>
+		</ul>
+
+		<hr>
+
+		<h6>Examples</h6>
+		<div id="examples">
+			<a href="#" onclick="loadExamples()" class="btn btn-small btn-info ">Load Examples</a>
+		</div>
+	</div>
+</div>
+
+<script type="text/javascript">
+	$('#nav_conf_properties').addClass('active');
+	$('a').tooltip();
+	
+	function loadExamples(){
+		//alert("Load Examples " + url);
+		
+		$.get("/conf/properties/example", { property: $.trim(url), lastLoad: lastLoad},
+			function(data) {
+				if (data['lastLoad'] == lastLoad) {
+					$('#examples').html(data['main']);
+				}
+		 	}
+		);		
+	}
+	
+</script>

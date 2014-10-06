@@ -1,0 +1,147 @@
+@index_configuration("Concepts"){
+    <div class="alert alert-info">
+    	<strong>Info: </strong>This page is still construction and might not work. It is not a key component of LODE.
+    </div>
+<div class="row-fluid">
+ 	<div class="span4">
+		@tree()
+  	</div> <!-- col 1 -->	
+  
+  	<div id="propertyDiv" class="span8">
+ 	   			
+	</div> <!-- col2 -->
+</div>
+@modalDialog()
+		
+<script type="text/javascript">
+	$('#nav_conf_concepts').addClass('active');
+	function activate(){
+		// activate sortable
+		var wasSorted = false;
+		$(function() {
+			$( ".column").sortable({
+				connectWith: ".column",
+			   	start: function(event, ui) { },
+			   	stop: function(event, ui) { wasSorted = true;}
+
+			}).disableSelection();
+		});
+		
+		// enable/disable properties
+		$("div.conf-concept-property").click(function(){
+			if (!wasSorted){
+				if(!$(this).is('.muted')){ 
+					$(this).addClass('muted');
+				} else {
+					$(this).removeClass('muted');			
+				}
+			} else {
+				wasSorted=false;
+			}
+		});
+		
+		// click info button
+		$("a.btn").click(function(){
+			$('#myModalLabel').text($(this).nextAll('div.header').text());
+			$('#myModalContent').text($(this).nextAll('div.content').text());
+			$('#myModal').modal();		
+			
+			$(this).parent().click(); // change state 
+		});
+		
+		// submit
+		$("div.form-actions button[type=\"submit\"]").click(function(){
+			$('#myModalLabel').text("Submit");
+			
+			var col2 =new Array(); // regular array (add an optional integer
+	      	var i = 0;
+			$("div#col2").children().each(function(){
+		          col2[i++] = '<br>' + /*' - ' + $(this).children('div.header').text() +*/ $(this).children('div.content').text() + '(' + !$(this).is('.muted') + ')';
+	      	});
+					
+			$('#myModalContent').html('right: ' +  col2);
+					
+			
+			$('#myModal').modal();
+		});
+	}
+</script>
+}
+
+
+@modalDialog() = {
+    <!-- start modal -->
+    <div class="modal hide fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+	    <div class="modal-header">
+	    	<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+	    	<h3 id="myModalLabel"></h3>
+	    </div>
+	    <div class="modal-body">
+	    	<p id=myModalContent></p>
+	    </div>
+	    <div class="modal-footer">
+		    <button class="btn btn-primary" data-dismiss="modal" aria-hidden="true">Close</button>
+	    </div>
+    </div>
+    <!-- end modal -->
+}
+
+@tree() = {
+<div>
+	<div class="tree">
+		<div id="demo2" class="demo"></div>
+
+		<script type="text/javascript">
+			$(function() {
+				var activeLeave;
+				$("#demo2").jstree({
+					// "core" : { "initially_open" : [ "root" ] },
+					"themes" : {
+						"theme" : "apple",
+						"dots" : true,
+						"icons" : false
+					},
+					"json_data" : {
+						"ajax" : {
+							"url" : "/tree",
+							"data" : function(n) {
+								//alert(n);
+								return {
+									id : n.attr ? n.attr("id") : 0
+								};
+							}
+						}
+					},
+					"plugins" : [ "themes", "json_data", "checkbox"]
+				});
+
+				  $(".tree a").live("click", function(e) {
+					 var id = $(this).parent().attr('id');
+					 if (typeof activeLeave != 'undefined') {
+					 	activeLeave.removeClass('bold');
+					 }
+					 $(this).addClass('bold');
+					 activeLeave = $(this);
+					 $('#propertyDiv').html('<div class="alert alert-info">Loading...</div>');
+					 $.get('/conf/concepts/'+id, function(data) {
+						  $('#propertyDiv').html(data);
+						  activate();
+						}); 					 
+					})
+				
+				$("#target").click(
+						function() {
+							var checked_ids = [];
+							$("#demo2").jstree("get_checked", null, true).each(
+									function() {
+										checked_ids.push(this.id);
+									});
+							alert(checked_ids);
+						});
+			});
+		</script>
+
+	</div>
+	<div id="target" style="cursor: pointer">show selected</div>
+</div>
+}

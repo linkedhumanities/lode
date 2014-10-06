@@ -1,0 +1,57 @@
+@(title: String, name: String,list : List[List[models.entity.PropertyContainer]], states : Set[models.states.LinkingState])
+
+@import views.html.helpers._
+@import models.states.LinkingState
+					
+@main(title) {
+    <div class="page-header">
+    	@if(!states.contains(LinkingState.DBPEDIA)){
+@**	
+    	<a href="/link/dbpedia/@title"><img class="pull-right" alt="linking" src="@routes.Assets.at("/images/DBpedia-gray.png")"/></a>
+**@
+    	<div class="pull-right">
+    		<a id="menu1" class="popover-link" rel="popover" data-html="true" data-content="<ul><li><a href='/link/dbpedia/@title'>method: SPARQL</a></li><li><a href='/link/dbpedia/@{title}?method=1'>method: wikiStat</a></li><li><a href='/delete/rmlinks/@title'>Remove Links</a></li></ul>"><img alt="enhance" src="@routes.Assets.at("/images/DBpedia-gray.png")"/></a>
+    	</div>
+    	}
+    	@if(states.contains(LinkingState.DBPEDIA)){
+    	<div class="pull-right">
+    		<a id="menu2" class="popover-link" href="#" rel="popover" data-html="true" data-content="<ul><li><a href='/enhance/@title/@LinkingState.DBPEDIA.toString().toLowerCase()'>Enhancer</a></li><li><a href='/link/@LinkingState.DBPEDIA.toString().toLowerCase()/@title'>Linker (SPARQL)</a></li><li><a href='/link/@LinkingState.DBPEDIA.toString().toLowerCase()/@{title}?method=1'>Linker (wikiStat)</a></li><li><a href='/delete/rmlinks/@title'>Remove Links</a></li></ul>"><img alt="enhance" src="@routes.Assets.at("/images/DBpedia.png")"/></a>
+    	</div>
+    	}
+<!--     	@if(states.contains(LinkingState.UNKNOWN)){ -->
+<!--     		State: @states -->
+<!--     		<a href="/enhance/@title"><img class="pull-right" alt="enhance" src="@routes.Assets.at("/images/DBpedia.png")"/></a> -->
+<!--     		<a href="/link/@title"><img class="pull-right" alt="linking" src="@routes.Assets.at("/images/DBpedia-gray.png")"/></a> -->
+<!--     	}    	 -->
+    	<h1><a href="/content" data-toggle="tooltip" data-placement="bottom" title="Go to content explorer"><img style="height: 35px; margin-right: 10px; margin-bottom: 5px;" src="@routes.Assets.at("images/leftarrowsmall.png")"/></a>@name</h1>
+    </div>
+
+
+    <div class="row">
+    @for(col <- list) {
+    	<div class="span6">
+    		@for(pair <- col) {
+	  			@displayProperty(pair.getPropertyURI(), pair)
+	  		}		
+    	</div>
+    }
+    </div>
+    
+	<script type="text/javascript">
+ 		$('#nav_content').addClass('active');
+ 	    $('#menu1').popover({title: 'Link with...', placement:'bottom'});
+ 	    $('#menu2').popover({title: 'Go to the...', placement:'bottom'});
+ 	    //close popover start
+		$(':not(#anything)').on('click', function (e) {
+		    $(".popover-link").each(function () {
+		        //the 'is' for buttons that trigger popups
+		        //the 'has' for icons and other elements within a button that triggers a popup
+		        if (!$(this).is(e.target) && $(this).has(e.target).length === 0 && $('.popover').has(e.target).length === 0) {
+		            $(this).popover('hide');
+		            return;
+		        }
+		    });
+		});
+		//close popover end 	    
+	</script>
+}

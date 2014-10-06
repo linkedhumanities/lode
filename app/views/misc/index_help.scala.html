@@ -1,0 +1,69 @@
+@(message: String)
+
+@main(message) {	
+    <div class="page-header">
+    	<h1>Help Page</h1>
+    </div>	
+		<p>This page leads you through the functionalities of the linked open data enhancer (LODE). It only covers the basic functionalities.</p>
+		<h3>A. Explore</h3>
+		
+		<div class="row-fluid">
+			<div class="span5">
+				<img alt="browser" src="/assets/images/screenshot/browser.png" width="400" class="img-polaroid"/>
+			</div>
+			<div class="span7">				
+				<p><b>Browse in the content of the "local" database.</b></p>
+				<ol>
+					<li>Search for a term (e.g. "Wittgenstein", "Socrates", "Plato") in the local database.</li>
+					<li>Search results will be displayed below. If the same-as link symbols are colored, they link to the entry of DBPedia or the InPho database</li>
+					<li>Click on the id (e.g. thinker:t4132) to display the local database entry.</li>
+					<li>Check the color of the DBPedia logo in the top right corner. If it is
+			  		<ul>
+			    		<li>black-and-white (<img alt="dbpedia logo gray" src="/assets/images/DBpedia-gray.png" width="50"/>) a link need to be created and, thus, it will lead you to the linker (B).
+			    		<li>colored (<img alt="dbpedia logo" src="/assets/images/DBpedia.png" width="50"/>) there exists already a link to DBPedia and, thus, it will lead you to the enhancer (C).
+			  		</ul>
+					</li>
+				</ol>
+			</div>
+		</div>
+		
+		<hr>	
+		
+		<h3>B. Link</h3>
+		<div class="row-fluid">
+			<div class="span5">
+					<img alt="linker" src="/assets/images/screenshot/linker.png" width="400" class="img-polaroid"/>
+			</div>
+			<div class="span7">						
+					<p><b>Link entities to other entities from other databases.</b></p>
+					<ol>
+						<li>On the left side the local instance is displayed. On the right side you can explore the suggested matching candidates.</li>
+						<li>If you want more information of a specific matching candidate just click on "Show More".</li>
+						<li>For establishing a link drag and drop the instance (the green square) from the right side to the left side.</li>
+						<li>If a link has been established you are redirected to the enhancer (C).</li>
+					</ol>
+			</div>
+		</div>
+		
+		<hr>
+		
+		<h3>C. Enhance</h3>		
+		<div class="row-fluid">
+			<div class="span5">
+					<img alt="enhancer" src="/assets/images/screenshot/enhancer.png" width="400" class="img-polaroid"/>
+			</div>
+			<div class="span7">					
+					<p><b>Enhance the entities of the "local" database with data from other resources.</b></p>
+					<ol>
+						<li>On the left side the local instance is displayed. On the right side you can explore the suggested concepts and properties for enhancement.</li>
+						<li>If you want to see more matching candidates, click on the '+' symbol (not visible in current screenshot).</li>
+						<li>For enhancing a concept or a property, just drag-and-drop the item from the right side to the left side.</li>
+						<li>For creating a new property, you have to drag-and-drop the property name (e.g. 'label' or 'abstract') and not the values.</li>
+					</ol>
+			</div>
+		</div>
+	
+	<script type="text/javascript">
+		$('#nav_help').addClass('active');
+	</script>	
+}

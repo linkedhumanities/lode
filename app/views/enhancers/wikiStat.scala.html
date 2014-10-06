@@ -1,0 +1,51 @@
+@(title: String, info: List[Array[String]])
+
+@main(title) {
+	<div class="page-header">
+    	<h1>@title</h1>
+    </div>
+
+	<form class="form-inline" onSubmit="return handleClick()" method="get">
+		<div class="input-append">
+			<input class="span3" id="searchInput" placeholder="search..." value=""
+				name="search" size="16" type="text">
+			<button class="btn" onclick="startSearch()" type="submit">Go!</button>
+		</div>
+	</form>    
+    
+    <hr>
+        
+	<table class="table table-striped">
+    	<thead>
+    		<tr>
+    			<th>SF</th>
+    			<th>URI</th>
+    			<th style="width:200px;">COUNT</th>
+    		</tr>    		
+    	</thead>
+		<tbody id="tableBody">
+			@for(row <- info){
+    		<tr>
+    			<td>@row(0)</td>
+    			<td>@row(1)</td>
+    			<td>@row(2)</td>
+    		</tr>
+    		}    		
+    	</tbody>
+    </table>
+    
+	<script type="text/javascript">
+		function handleClick()
+		{
+		  return false;
+		}
+	
+		function startSearch(){
+			$('#tableBody').html('<tr><td style="text-align:center;" colspan="3">loading...</td></tr>')
+			$.get("/link/wikiStat", { query: $("#searchInput").val()},
+				   function(data){  
+						$('#tableBody').html(data);
+				});
+		}		
+	</script>
+}

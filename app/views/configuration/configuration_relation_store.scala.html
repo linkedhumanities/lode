@@ -1,0 +1,127 @@
+@(map: org.apache.commons.collections.map.MultiKeyMap)
+@import org.apache.commons.collections.map.MultiKeyMap
+@import org.apache.commons.collections.keyvalue.MultiKey
+@import utils.StringUtils
+@import sparql.Namespace
+
+@index_configuration("Relation Store") {
+<div class="alert alert-info">
+    	<strong>Info: </strong>This page is still construction and might not work. It is not a key component of LODE.
+</div>
+<p><strong>content of the relation store</strong></p>
+<div>
+	<form class="form-inline">
+		<label class="bold">relation:</label>
+		<select id="relationFilter" class="span2">
+			<option selected>ALL</option>
+
+		</select>			
+		<label class="bold">URI:</label>
+		<input id="uriSearchInput" type="text" class="span">
+	</form>
+</div>
+<hr>
+<table class="table">
+	<thead>
+		<tr>
+			<th>relation</th>
+			<th>URI 1</th>
+			<th>URI 2</th>		  
+		</tr>
+	</thead>
+	<tbody>
+
+@for(key <- map.keySet()){ 
+<tr>
+	<td>@key.asInstanceOf[MultiKey].getKey(1)</td>
+	<td>@formatURI(key.asInstanceOf[MultiKey].getKey(0).asInstanceOf[String])</td>
+	<td>
+		<ul>
+			@for(v <- map.get(key).asInstanceOf[Set[String]]){
+				<li>@formatURI(v.asInstanceOf[String])</li>
+			}
+		</ul>
+	</td>
+</tr>
+}
+
+	</tbody>
+</table>
+
+    
+<script type="text/javascript">
+	$('#nav_conf_relation_store').addClass('active');
+	$('a').tooltip();
+	
+	var relationFilter = "ALL";
+	var uriSearch = ""; 
+
+	function checkEnter(e){
+		 e = e || event;
+		 var txtArea = /textarea/i.test((e.target || e.srcElement).tagName);
+		 return txtArea || (e.keyCode || e.which || e.charCode || 0) !== 13;
+	}
+	document.querySelector('form').onkeypress = checkEnter;
+	
+	$("#uriSearchInput").keyup(function() {
+		//if ($(this).val().length > 0){
+			uriSearch = $(this).val();
+			checkRow();
+		//}
+	});
+	
+	$("#relationFilter").change(function () {			
+		relationFilter = $(this).val();
+		checkRow();
+	});
+	
+	function checkRow(){
+		$('tbody>tr').each(function() {
+			//var text = $.trim($(this).text());
+			//var data = $.trim($(this).attr('data-original-title'));			
+			var hide = false;
+			var row = $(this).children();
+			
+			var current = row.first();
+						
+			if (relationFilter != "ALL" && current.text() != relationFilter){
+				hide = true;
+			}
+			if (hide == false && uriSearch.length>0){
+				var found = false;
+				row.each(function(){
+					if (found == false){
+						//var attribute = $(this).children().attr('data-original-title');
+						//console.log(attribute);
+						//if ($(this).text().indexOf(uriSearch) != -1 || (typeof attribute !== "undefined" && attribute.indexOf(uriSearch) != -1))
+						var children = $(this).children();
+						var text = typeof children.html() !== "undefined" ? children.html() : children.text();					
+						if (text.indexOf(uriSearch) != -1){							
+							found = true;
+						}
+					}
+				});
+				
+				if (!found){
+					hide = true;
+				}
+			}
+			
+			if (hide) {
+				$(this).hide();
+			} else {
+				$(this).show();
+			}
+			
+		});		
+	}
+	
+</script>
+
+}
+
+@formatURI(uri : String) = {
+	<a data-tooltip="tooltip" data-placement="right" title="@uri" class="onlyTooltip">
+	@Namespace.getPrefix(StringUtils.splitURI(uri)(0)):@StringUtils.splitURI(uri)(1)	
+	</a>
+}

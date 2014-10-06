@@ -1,0 +1,74 @@
+# Routes
+# This file defines all application routes (Higher priority routes first)
+# ~~~~
+
+# Home page
+GET     /                           controllers.Main.index()
+GET		/jqueryui					controllers.Main.jqueryui()
+GET		/jstree						controllers.Main.jstree()
+GET		/dbtest						controllers.Main.dbTest()
+GET		/eval						controllers.Main.eval()
+
+GET		/content					controllers.content.MainController.content()
+GET		/content/conceptTypeAhead  	controllers.content.MainController.getTypeAhead()
+GET		/content/conceptFilter		controllers.content.MainController.getConcepts()
+GET		/content/instances			controllers.content.MainController.getInstances()
+GET		/content/basicProperties	controllers.content.MainController.getBasicProperties()
+
+GET		/content/entity/:name		controllers.content.MainController.show(name:String)
+
+GET		/conf						controllers.configuration.MainController.start()
+GET		/conf/save					controllers.configuration.MainController.saveBasicSettings()
+GET		/conf/concepts				controllers.configuration.MainController.concepts()
+GET		/conf/concepts/:concept		controllers.configuration.MainController.getConcept(concept:String)
+
+GET		/conf/properties			controllers.configuration.MainController.properties()
+GET		/conf/properties/show		controllers.configuration.MainController.showProperty()
+GET		/conf/properties/example	controllers.configuration.MainController.showPropertyExample()
+
+# Config - Namespaces
+GET		/conf/namespaces			controllers.configuration.Namespaces.namespaces()
+GET		/conf/namespaces/load		controllers.configuration.Namespaces.loadNamespaces()
+GET		/conf/namespaces/save		controllers.configuration.Namespaces.saveNamespaces()
+GET		/conf/namespaces/add		controllers.configuration.Namespaces.addNamespace()
+GET		/conf/namespaces/remove		controllers.configuration.Namespaces.removeNamespace()
+
+# Config - Relations
+GET		/conf/relations				controllers.configuration.Relations.show()
+GET		/conf/relations/add			controllers.configuration.Relations.add()
+GET		/conf/relations/remove		controllers.configuration.Relations.remove()
+
+GET		/conf/relation_store		controllers.configuration.MainController.relationStore()
+
+
+
+# Enhancer
+GET		/enhance/:name/:ls			controllers.enhancers.EnhancerController.enhance(name:String, ls:String)
+GET		/enhance/:name/:category/:position/:normal/reload		controllers.enhancers.EnhancerController.reloadContent(name:String, category:String, position:String, normal:Boolean)
+GET		/enhance/insert				controllers.enhancers.EnhancerController.insert()
+GET		/enhance/:name/:property/values	controllers.enhancers.EnhancerController.getValues(name:String, property:String)
+
+# Linker
+GET		/link/:source/:name			controllers.enhancers.LinkerController.link(source:String, name:String)
+GET		/status/:id					controllers.enhancers.LinkerController.status(id:String)
+GET		/link/setlink				controllers.enhancers.LinkerController.setLink()
+GET		/link/more					controllers.enhancers.LinkerController.show()
+GET		/link/wikiStat				controllers.enhancers.LinkerController.wikiStat()
+
+# Delete
+GET		/link/rmlink				controllers.enhancers.MainController.rmLink()
+GET		/delete/rmlinks/:id			controllers.enhancers.MainController.rmLinks(id:String)		
+GET		/delete/rmlinks/:id/confirm		controllers.enhancers.MainController.rmLinksConfirm(id:String)
+#GET		/delete/:id/:property/:value	controllers.enhancers.MainController.removeSameAsLink(id:String, property:String, value:String)
+#GET		/delete/:id/:property/:value/confirm	controllers.enhancers.MainController.removeSameAsLinkConfirm(id:String, property:String, value:String)
+
+# Main
+GET		/help						controllers.Main.help()
+GET		/about						controllers.Main.about()
+GET		/dev						controllers.Main.dev()	
+
+GET		/sparql						controllers.SimpleController.index()
+#GET		/config						controllers.Sparql.createFile()
+
+# Map static resources from the /public folder to the /assets URL path
+GET     /assets/*file               controllers.Assets.at(path="/public", file)

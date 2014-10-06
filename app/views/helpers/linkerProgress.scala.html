@@ -1,0 +1,48 @@
+@(source : String, id : String)
+
+@main("Linking ") {
+
+<div class="page-header">
+	<h1>One moment please ...</h1>
+	<small>We are loading information from <span class="text-info" style="font-weight: bold;">@source</span>. This can take a while, depending on the load of <span class="text-info" style="font-weight: bold;">@source</span>.</small>
+</div>
+
+	<div class="progress progress-striped active">
+		<div id="linkerprogressbar" class="bar" style="width: 0%;">0%</div>
+	</div>
+	<div style="text-align: center; font-weight: bold;">
+		<span id="step">Step 1: </span>
+		<span id="status">Initialization</span>
+	</div>
+		
+<script type="text/javascript">
+	var intervalId;
+
+    function getPercentage()
+    {
+        $.ajax({
+            type: "GET",
+            url: "/status/@id",
+            dataType: "html",
+            success: function(value)
+                {
+            		var data = value.split("#!#");
+            		if(data.length==3) {
+	            		$('#step').html(data[0]);
+	                	$('#linkerprogressbar').html(data[1]+"%");
+	                	$('#status').html(data[2]);
+	                	document.getElementById('linkerprogressbar').style.width=data[1]+'%';
+            		} else {
+            			var newDoc = document.open("text/html", "replace");
+            			newDoc.write(value);
+            			newDoc.close();            			
+            			clearInterval(intervalId);
+            		}
+                }
+        });
+    }
+    $(document).ready(function() {
+    	intervalId = setInterval("getPercentage()",700);
+    });
+</script>
+}

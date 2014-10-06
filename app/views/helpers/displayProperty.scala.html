@@ -1,0 +1,27 @@
+@(dTitle : String, dDesc : models.entity.PropertyContainer) 
+ <dl>
+ 	<dt><span data-type="property" data-uri="@utils.ResUtils.createShortURI(dTitle)"><a data-toggle="tooltip" data-placement="right" title="@utils.ViewUtils.toHtmlLink(dTitle)" style="color: #424242; cursor: pointer; text-decoration: none;">@dDesc.getPropertyName()</a></span>
+<!-- 	    <span class="en_box drop" data-type="property" data-uri="@utils.ResUtils.createShortURI(dTitle)" style="display:none;"><a data-placement="right" target="blank" title="@utils.ViewUtils.toHtmlLink(dTitle)">\ud83d\udcce @dDesc.getPropertyName()</a></span></dt> -->
+	<dd>
+		<div class="en_box drop" style="display:none;" data-field="value">\u2295 add new value</div>
+	</dd>
+	<dd>
+			@Html(utils.ViewUtils.buildPropertyEntries(dTitle,dDesc))
+	</dd>
+ </dl>
+ 
+<script type="text/javascript">	
+	$(lodetooltip());
+
+	function showMoreText (data) {
+  		if($(data).html()=='show more') {  		
+  			$(data).html('show less');
+  			$(data).parent().children("span").eq(0).attr('style','display:none;');
+  			$(data).parent().children("span").eq(1).attr('style','');
+  		} else {
+  			$(data).html('show more');
+  			$(data).parent().children("span").eq(0).attr('style','');
+  			$(data).parent().children("span").eq(1).attr('style','display:none;');
+  		} 		
+  	}
+</script>

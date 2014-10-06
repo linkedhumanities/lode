@@ -1,0 +1,36 @@
+@(title: String, info: Map[String,String])
+
+@main(title) {
+	<div class="page-header">
+    	<h1>@title</h1>
+    </div>
+    @*    
+    <div class="alert alert-info">
+    	<strong>Info: </strong> Page is under construction.
+    </div>
+    *@
+	<table class="table table-striped">
+    	<thead>
+    		<tr>
+    			<th>ID</th>
+    			<th>Property</th>
+    			<th>Value</th>
+    		</tr>    		
+    	</thead>
+		<tbody>
+    		<tr>
+    			<td>@info.get("id")</td>
+    			<td>@info.get("property")</td>
+    			<td>@info.get("value")</td>
+    		</tr>    		
+    	</tbody>    	
+    </table>
+    <div class="form-actions" style="text-align: center;">
+    	<a class="btn" href="javascript:history.back()">Cancel</a>
+    	<a id="confirm_button" href="/delete/@helper.urlEncode(info.get("id"))/@helper.urlEncode(info.get("property"))/@helper.urlEncode(info.get("value"))/confirm" class="btn btn-primary">Confirm</a>    
+    			
+    </div>    
+	<script type="text/javascript">
+ 		$('#nav_enhance').addClass('active');
+	</script>
+}

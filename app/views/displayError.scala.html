@@ -1,0 +1,85 @@
+@(title: String, errorcode: Integer, message: String)
+
+@main(title) {   
+      <div class="hero-unit">
+        <h1>Oh snap! An error occurred!</h1>
+
+      @if(errorcode == 4041) {
+	      <p>One of the external data access points is currently not available. Please note that we are not responsible for the availability of these external data sources. Still, we apologize for the inconvenience!</p>
+	      </div>
+	      <div>
+	      <h5>Please try one of these steps:</h5>
+	      <ul style="margin-bottom: 50px; font:bold;">
+			<li>Reload this page</li>
+			<li>Go back to the main page and start over</li>
+			<li>Create a ticket with us, we'll see what we can do! (Please add the stacktrace)</li>
+		  </ul>
+	      </div>      
+			@getAccordion(message)
+	  }
+	  
+	  @if(errorcode == 4042) {
+		  <p>It looks like that you tried to load a page like the Enhancer or Linker with an invalid entry id.</p>
+	      </div>
+	      <div>
+	      <h5>Please try one of these steps:</h5>
+	      <ul style="margin-bottom: 50px; font:bold;">
+	      	<li>Check the entry id (e.g. thinker:t3345)</li>
+			<li>Go back to the main page and start over</li>
+			<li>Create a ticket with us, we'll see what we can do! (Please add the stacktrace)</li>
+		  </ul>
+	      </div>      
+			@getAccordion(message)
+      } 
+      
+      @if(errorcode == 4043) {
+          <p>It looks like that all actors are terminated. This could happen because the server was restarted.</p>
+	      </div>
+	      <div>
+	      <h5>Please try one of these steps:</h5>
+	      <ul style="margin-bottom: 50px; font:bold;">
+			<li>Go back to the main page and start over</li>
+			<li>Create a ticket with us, we'll see what we can do! (Please add the stacktrace)</li>
+		  </ul>
+	      </div>      
+			@getAccordion(message)
+      }
+      
+		@if(errorcode == 4044) {
+          <p>We are not able to load the requested entity.</p>
+	      </div>
+	      <div>
+	      <h5>Please try one of these steps:</h5>
+	      <ul style="margin-bottom: 50px; font:bold;">
+			<li>Go back to the main page and start over</li>
+			<li>Create a ticket with us, we'll see what we can do! (Please add the stacktrace)</li>
+		  </ul>
+	      </div>      
+			@getAccordion(message)
+      }      
+}
+
+<script type="text/javascript">
+	function changeAccordingHeadline (id) {
+		if(document.getElementById(id).innerHTML == "Show error message") {  
+			document.getElementById(id).innerHTML = "Hide error message";
+		} else {
+			document.getElementById(id).innerHTML = "Show error message";
+		}
+	}
+</script>
+
+
+@getAccordion(message: String) = {
+	      <div class="accordion" id="accordion2">
+		  	<div class="accordion-group">
+				<div class="accordion-heading">
+					<a id="accordion-headline" class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapseOne" onclick="changeAccordingHeadline(this.id)">Show error message</a>
+				</div>
+				<div id="collapseOne" class="accordion-body collapse">
+					<div class="accordion-inner">
+						<p class="text-error">@message</p>
+					</div>
+				</div>
+		  </div>
+}

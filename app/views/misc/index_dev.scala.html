@@ -1,0 +1,102 @@
+@(message: String)
+
+@main(message) {
+    <div class="page-header">
+    	<h1>@message
+    	<small>Overview</small></h1>
+    </div>
+    
+    <h3>Source Code of LODE</h3>
+	<dl class="dl-horizontal">
+		<dt>github</dt>
+		<dd><a href="https://github.com/linkedhumanities/lode">LinkedHumanties/Lode</a></dd>
+	</dl>	
+    
+    <h3><a href="http://www.playframework.org/">play framework</a></h3>
+    <dl class="dl-horizontal">
+		<dt>version:</dt>
+		<dd>play 2.2.3-RC2<br>			
+		</dd>
+		@**
+		<dt>links:</dt>
+		<dd>
+			<ul class="unstyled">
+				<li><a href="https://github.com/playframework">playframework@@github</a></li>
+				<li><a href="https://groups.google.com/forum/?fromgroups#!forum/play-framework">Google Group</a></li>
+				<li><a href="https://github.com/playframework/Play20/wiki/Tips">tips: bootstrap</a></li>
+				<li><a href="https://github.com/playframework/Play20/wiki/JavaGlobal">java global</a></li>
+			</ul>
+		</dd>
+		**@
+	</dl>
+
+    <h3><a href="http://twitter.github.com/bootstrap/">twitter bootstrap</a></h3>
+    <dl class="dl-horizontal">
+		<dt>version:</dt>
+		<dd>bootstrap 2.3.2</dd>
+	</dl>
+    
+    <h3><a href="http://jqueryui.com/">jQuery</a></h3>
+    <dl class="dl-horizontal">
+		<dt>version:</dt>
+		<dd>jQuery 1.9.1</dd>
+	</dl>
+	
+    <h3><a href="http://jqueryui.com/">jQuery UI</a></h3>
+    <dl class="dl-horizontal">
+		<dt>version:</dt>
+		<dd>jQueryUI 1.10.3</dd>
+	</dl>
+   
+    <h3><a href="http://jena.apache.org/">Apache Jena</a></h3>
+    <dl class="dl-horizontal">
+		<dt>version:</dt>
+		<dd>2.10</dd>
+	@**
+		<dt>api:</dt>
+		<dd><a href="http://jena.apache.org/documentation/javadoc/">Jena javadoc</a></dd>
+		<dt>links:</dt>
+		<dd><a href="https://github.com/castagna/jena-examples/tree/master/src/main/java/org/apache/jena/examples">examples</a></dd>
+	**@
+	</dl>
+
+    <h3><a href="http://www.ontotext.com/owlim">Ontotext OWLIM lite</a></h3>
+    <dl class="dl-horizontal">
+		<dt>version:</dt>
+		<dd>5.3.5928</dd>
+	@**
+		<dt>api:</dt>
+		<dd><a href="http://jena.apache.org/documentation/javadoc/">Jena javadoc</a></dd>
+		<dt>links:</dt>
+		<dd><a href="https://github.com/castagna/jena-examples/tree/master/src/main/java/org/apache/jena/examples">examples</a></dd>
+	**@
+	</dl>
+	
+	@**	
+	<h3><a href="http://www.openrdf.org/">SPARQL (openRDF)</a></h3>
+	<dl class="dl-horizontal">
+		<dt>workbench</dt>
+		<dd><a href="http://drachten.informatik.uni-mannheim.de:8080/openrdf-workbench/repositories/">OpenRDF Workbench (SESAME)</a></dd>
+		<dt>api</dt>
+		<dd><a href="http://www.openrdf.org/doc/sesame2/system/ch08.html">rest api</a></dd>
+	</dl>
+		
+    <h3><a href="http://www.jstree.com/">jsTree</a></h3>
+    <dl class="dl-horizontal">
+		<dt>version:</dt>
+		<dd>jsTree pre 1.0 fixed</dd>
+	</dl>	
+	<h3>more</h3>
+	<dl class="dl-horizontal">
+		<dt>HTML,CSS,js</dt>
+		<dd>
+			lessCSS: 1.3.0 <br>
+			CoffeeScript <br>
+			twirl <br>
+		</dd>
+	</dl>
+	**@
+	<script type="text/javascript">
+		$('#nav_dev').addClass('active');
+	</script>	
+}

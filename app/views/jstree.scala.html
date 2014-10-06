@@ -1,0 +1,44 @@
+@(message: String) @main(message) {
+<div>
+	<div class="tree">
+		<div id="demo2" class="demo"></div>
+
+		<script type="text/javascript">
+			$(function() {
+				$("#demo2").jstree({
+					// "core" : { "initially_open" : [ "root" ] },
+					"themes" : {
+						"theme" : "apple",
+						"dots" : true,
+						"icons" : false
+					},
+					"json_data" : {
+						"ajax" : {
+							"url" : "tree",
+							"data" : function(n) {
+								//alert(n);
+								return {
+									id : n.attr ? n.attr("id") : 0
+								};
+							}
+						}
+					},
+					"plugins" : [ "themes", "json_data", "checkbox"]
+				});
+
+				$("#target").click(
+						function() {
+							var checked_ids = [];
+							$("#demo2").jstree("get_checked", null, true).each(
+									function() {
+										checked_ids.push(this.id);
+									});
+							alert(checked_ids);
+						});
+			});
+		</script>
+
+	</div>
+	<div id="target" style="cursor: pointer">show selected</div>
+</div>
+}

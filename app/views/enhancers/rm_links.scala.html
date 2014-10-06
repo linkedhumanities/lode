@@ -1,0 +1,70 @@
+@(title: String, id: String, info: List[Map[String,String]])
+
+@main(title) {
+	<div class="page-header">
+    	<h1>@title</h1>
+    </div>
+
+	<table class="table table-striped  table-hover">
+    	<thead>
+    		<tr>
+    			<th>ID</th>
+    			<th>Property</th>
+    			<th>Value</th>
+    			<th></th>
+    		</tr>    		
+    	</thead>
+		<tbody>
+			@for(link <- info){
+    		<tr>
+    			<td>@link.get("id")</td>
+    			<td>@link.get("property")</td>
+    			<td>@link.get("value")</td>
+    			<td>
+					<button type="button" class="btn rmlinkselect" data-toggle="button"
+							data-link-id="@link.get("id-value")" data-link-property="@link.get("property-value")" data-link-value="@link.get("value-value")"
+					>
+						<i class="icon-remove"></i> delete
+					</button>
+				</td>
+    		</tr>
+    		}       		
+    	</tbody>    	
+    </table>
+    <div class="form-actions" style="text-align: center;">
+    	<a class="btn" href="javascript:history.back()">Cancel</a>
+    	<a class="btn" href="#" id="confirm_button">Confirm</a>    
+ 			
+    </div>    
+	<script type="text/javascript">
+ 		$('#nav_enhance').addClass('active');	
+ 		
+ 		var select = false;
+ 		
+ 		$( "#confirm_button").click(function() {
+ 			var deleteLinks = {links:[]};
+ 			$(".rmlinkselect").each(function(){
+ 				if ($(this).hasClass("active")){ 
+ 					deleteLinks.links.push({
+						"id"		:	$(this).data("link-id"),		
+						"property"	:	$(this).data("link-property"),
+						"value"		:	$(this).data("link-value")
+					});
+					select = true;
+ 				}
+ 			});
+			
+ 			if (select){ 
+ 				 $.get("/delete/rmlinks/@helper.urlEncode(id)/confirm", { data : deleteLinks },
+ 						   function(data){
+			 					var newDoc = document.open("text/html", "replace");
+			        			newDoc.write(data);
+			        			newDoc.close();      
+ 						   });		
+ 			} else {
+ 				alert("You have to select links you want to delete.")
+ 			}
+ 		});
+ 		
+	</script>
+}

@@ -1,0 +1,37 @@
+@(entities: List[models.entity.EntityContainer], page : Integer)
+@if(entities.isEmpty()) {
+	<div class="alert alert-info">
+		No Result.
+	</div>
+	} else { 		
+	<ul class="pager">
+    	<li class="prevP"><a href="#instancesBox" onclick="prevPage()">Previous</a></li>
+    	<li>@page</li>
+    	<li class="nextP"><a href="#instancesBox" onclick="nextPage()">Next</a></li>
+    </ul>	
+	<table class="table table-striped">
+            <thead>
+                <tr>
+                  <th style="width: 300px;">URI</th>
+                  <th>Name</th>
+                  <th>Concepts</th>
+                  <th style="text-align: center; width:64px;">sameAs<br>Links</th>
+                </tr>
+            </thead>
+            <tbody>
+	@for(entity <- entities) {
+                <tr>
+                  <td><a data-toggle="tooltip" data-placement="right" title="<b><a href='@entity.getURI().getValue()' style='color: #FFFFFF; text-decoration:none;' target='_blank'>@entity.getURI().getValue()</a></b>" data-uri-long="@entity.getURI().getValue()" href="content/entity/@helper.urlEncode(entity.getShortURI())">@entity.getShortURI()</a></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                 </tr>
+	}
+            </tbody>
+    </table>
+	<ul class="pager">
+    	<li class="prevP"><a href="#instancesBox" onclick="prevPage()">Previous</a></li>
+    	<li>@page</li>
+    	<li class="nextP"><a href="#instancesBox" onclick="nextPage()">Next</a></li>
+    </ul>
+    }

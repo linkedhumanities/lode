@@ -1,0 +1,248 @@
+@(settings: Map[String,Object])
+
+@index_configuration("Start") {
+<form class="form-horizontal" onSubmit="return handleClick()">
+<p><strong>Change the settings of the different components.</strong></p>
+
+<h4>OWLIM/Sesame</h4>
+<div class="control-group">
+    <label class="control-label" for="inputServer">Server:</label>
+    <div class="controls">
+    	<input type="text" class="span4" id="inputServer" placeholder="sesameServer" value="@settings.get("SERVER")">
+		<button type="submit" class="btn" onclick="saveSettings()">apply</button>
+    	<p>
+    		http://drachten.informatik.uni-mannheim.de:8080<br>
+    		http://osdorp.informatik.uni-mannheim.de:8080<br>
+    		http://localhost:8080
+    	</p>
+    </div>
+</div>
+<div class="control-group">    
+    <label class="control-label" for="inputRepo">Repository:</label>
+    <div class="controls">
+		@**<input type="text" id="inputRepo" placeholder="sesameServer" value="@settings.get("REPO")">**@
+		<select id="inputRepo">
+			@getOptionValues(settings.get("REPOS").asInstanceOf[List[String]],settings.get("REPO").asInstanceOf[String])
+		</select>		
+	</div>
+</div>
+
+<hr>
+
+<h4>Interface</h4>
+
+<div class="control-group">    
+    <label class="control-label" for="inputL">languages:</label>
+    <div class="controls">
+		<input type="text" id="inputL" value="@listToString(settings.get("LANG").asInstanceOf[List[String]])">
+	</div>
+</div>
+
+<div class="control-group">    
+    <label class="control-label" for="inputIVL">max value length:</label>
+    <div class="controls">
+		<select id="inputIVL">
+			@getOption(1,500,settings.get("I_VALUE_LENGTH").asInstanceOf[Int],50)
+		</select>
+	</div>
+</div>
+
+<hr>
+
+<h4>Explorer</h4>
+
+<div class="control-group">    
+    <label class="control-label" for="inputIPS">entries per page:</label>
+    <div class="controls">
+		<select id="inputIPS">
+			@getOption(1,20,settings.get("I_PAGE_SIZE").asInstanceOf[Int],5)
+		</select>
+	</div>
+</div>
+
+<hr>
+
+<h4>Entity</h4>
+
+<div class="control-group">    
+    <label class="control-label" for="inputEC_RN">names:</label>
+    <div class="controls">
+		<input type="text" id="inputEC_RN" class="span6" value="@listToString(settings.get("EC_READABLE_NAMES").asInstanceOf[List[String]])">
+	</div>
+</div>
+
+<hr>
+
+<h4>Linker</h4>
+<div class="control-group">    
+    <label class="control-label" for="inputLIN">number of instances:</label>
+    <div class="controls">
+		<select id="inputLIN">
+			@getOption(1,20,settings.get("L_INSTANCES").asInstanceOf[Int],1)
+		</select>
+	</div>
+</div>
+
+<div class="control-group">    
+    <label class="control-label" for="inputLPN">number of properties:</label>
+    <div class="controls">
+		<select id="inputLPN">
+			@getOption(1,20,settings.get("L_PROPERTIES").asInstanceOf[Int],1)
+		</select>
+	</div>
+</div>
+
+<div class="control-group">    
+    <label class="control-label" for="inputLVN">values per property:</label>
+    <div class="controls">
+		<select id="inputLVN">
+			@getOption(1,20,settings.get("L_VALUES").asInstanceOf[Int],1)
+		</select>
+	</div>
+</div>
+
+<div class="control-group">    
+    <label class="control-label" for="inputLD">descriptions (properties): </label>
+    <div class="controls">
+		<input type="text" id="inputLD" class="span6" value="@listToString(settings.get("L_DESCRIPTION").asInstanceOf[List[String]])">
+	</div>
+</div>
+
+
+<div class="control-group">    
+    <label class="control-label" for="inputIDL">max description length:</label>
+    <div class="controls">
+		<select id="inputIDL">
+			@getOption(1,500,settings.get("I_DESC_LENGTH").asInstanceOf[Int],50)
+		</select>    
+	</div>
+</div>
+
+<hr>
+
+<h4>Enhancer</h4>
+<div class="control-group">    
+    <label class="control-label" for="inputEPN">number of properties:</label>
+    <div class="controls">
+		<select id="inputEPN">
+			@getOption(1,20,settings.get("E_PROPERTIES").asInstanceOf[Int],1)
+		</select>
+	</div>
+</div>
+
+<div class="control-group">    
+    <label class="control-label" for="inputEPVN">preview properties:</label>
+    <div class="controls">
+		<select id="inputEPVN">
+			@getOption(1,20,settings.get("E_PREVIEW").asInstanceOf[Int],1)
+		</select>
+	</div>
+</div>
+
+<div class="control-group">    
+    <label class="control-label" for="inputEVN">values per property:</label>
+    <div class="controls">
+		<select id="inputEVN">
+			@getOption(1,20,settings.get("E_VALUES").asInstanceOf[Int],1)
+		</select>
+	</div>
+</div>
+
+<hr>
+
+<h4>MySQL <small>(used for wikiStat proposals)</small></h4>
+
+<div class="control-group">    
+    <label class="control-label" for="inputMySQLServer">Server: </label>
+    <div class="controls">
+		<input type="text" id="inputMySQLServer" class="span4" value="@settings.get("MySQL_SERVER")">
+	</div>
+</div>
+<div class="control-group">
+    <label class="control-label" for="inputMySQLServer_User">User: </label>
+    <div class="controls">
+    	<input type="text" id="inputMySQLServer_User" value="@settings.get("MySQL_USER")">
+    </div>
+</div>
+<div class="control-group">
+    <label class="control-label" for="inputMySQLServer_Password">Password: </label>
+    <div class="controls">
+    	<input type="password" id="inputMySQLServer_Password" value="@settings.get("MySQL_PASSWORD")">
+    </div>
+</div>
+
+<div class="form-actions">
+	    <button type="submit" class="btn btn-primary" onclick="saveSettings()">Save changes</button>
+    	<button type="button" class="btn" value="Cancel" onClick="window.location.reload()">Cancel</button>
+</div>
+</form>
+
+    
+<script type="text/javascript">
+	$('#nav_conf_start').addClass('active');
+	
+	function handleClick()
+	{
+	  return false;
+	}
+	
+	function saveSettings(){
+		var settings = {};
+		settings['SERVER'] = $('#inputServer').val();
+		settings['REPO'] = $('#inputRepo').val();
+		
+		settings['EC_READABLE_NAMES'] = $('#inputEC_RN').val();
+		
+		settings['L_INSTANCES'] = $('#inputLIN').val();
+		settings['L_PROPERTIES'] = $('#inputLPN').val();
+		settings['L_VALUES'] = $('#inputLVN').val();
+	
+		settings['E_PROPERTIES'] = $('#inputEPN').val();
+		settings['E_VALUES'] = $('#inputEVN').val();		
+		settings['E_PREVIEW'] = $('#inputEPVN').val();
+		
+		settings['I_DESC_LENGTH'] = $('#inputIDL').val();
+		settings['I_VALUE_LENGTH'] = $('#inputIVL').val();
+		settings['I_PAGE_SIZE'] = $('#inputIPS').val();
+
+		settings['LANG'] = $('#inputL').val();		
+		
+		settings['MySQL_SERVER'] = $('#inputMySQLServer').val();
+		settings['MySQL_USER'] = $('#inputMySQLServer_User').val();
+		settings['MySQL_PASSWORD'] = $('#inputMySQLServer_Password').val();
+		
+		$.get("/conf/save", { data: JSON.stringify(settings)}, function(){
+			window.location.reload();
+		});		
+	}
+	
+</script>
+
+}
+
+@getOption(start: Int, end: Int, selected : Int, step : Int) = {
+	@for(i <- start to end ){
+		@if(i%step == 0){
+			@if(i == selected){
+				<option selected>@i</option>
+			}else{
+				<option>@i</option>
+			}
+		}
+	}
+}
+
+@getOptionValues(values: List[String], selected : String) = {
+	@for(value <- values){
+		@if(value == selected){
+			<option selected>@value</option>
+		}else{
+			<option>@value</option>
+		}
+	}
+}
+
+@listToString(list: List[String]) = {
+@if(list == null){} else{
+@for(entry <- list){@if(entry.length()>0){@entry;}}}
+}

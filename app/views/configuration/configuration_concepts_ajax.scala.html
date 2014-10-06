@@ -1,0 +1,34 @@
+@(concept:String, properties: List[String])
+
+
+<h4><small>show:</small> @concept</h4>
+<hr>
+   <!-- start sortable 2	-->		
+<div class="row-fluid">
+ 		<div class="span6">
+ 			<h5>left column</h5>
+ 			<div id="col1" class="well column">
+			@for(prop <- properties) {
+				@generateEntry(prop)
+			} 
+		</div>
+	</div>				
+	<div class="span6">	
+		<h5>right column</h5>
+		<div  id="col2" class="well column"></div>	
+	</div>
+</div>	
+
+<div class="form-actions" style="text-align:right;">
+		<button type="button" class="btn">Cancel</button>    	
+ 		<button type="submit" class="btn btn-primary">Save changes</button>    		
+</div>   
+
+
+@generateEntry(prop:String) = {
+	<div class="conf-concept-property">
+		<a class="btn pull-right"><i class="icon-info-sign"></i></a>		
+		<div class="header">@(prop.split("-")(prop.split("-").length-1))</div>
+		<div class="content"><small>@prop</small></div>
+	</div>	
+}

@@ -1,0 +1,30 @@
+@(title : String, closeText : String)
+
+<script type="text/javascript">
+$('.dropdown-toggle').dropdown()
+</script>
+
+<div class="modal hide fade" id="enhancerDialog" aria-hidden="true" style="height: auto;">
+	<div class="modal-header">
+		<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+		<h3 id="dialogTitle"></h3>
+	</div>
+	<div class="modal-body">
+		<div id="text1" style="font-weight: bold;"></div>	
+		<div id="value" style="font-style: italic; margin-left:30px; text-align:justify;"></div>
+		<div style="font-style: italic; margin-left:30px; text-align:justify; position:fixed;"><a id="source" data-toggle="tooltip" data-placement="right" title=""></a></div>
+		<div id="text2" style="font-weight: bold; margin-top:20px;"></div>	
+		<div style="font-style: italic; margin-left:30px; position:fixed;"><a id="destination" data-toggle="tooltip" data-placement="right" title=""></a></div>
+	</div>
+	<hr style="margin-top:15px;"/>	
+	<div id="propertyform-header" style="font-weight: bold; margin-left:15px; display: none;">Choose Values</div>	
+	<div id="propertyform" class="modal-body" style="display: none; margin-bottom:15px; padding-top:0px;">
+		<div id="propertyform-values" style="max-height:100px;">
+		</div>
+	</div>
+	
+	<div class="modal-footer">
+		<button id="cancelButton" class="btn" data-dismiss="modal" aria-hidden="true">cancel</button>
+		<button id="submitEnhancerButton" class="btn btn-primary">@closeText</button>
+	</div>
+</div>

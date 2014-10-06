@@ -1,0 +1,55 @@
+html {
+	overflow-y: scroll;
+}
+
+body {
+	padding-top: 60px;
+	padding-bottom: 40px;
+}
+
+.sidebar-nav {
+	padding: 9px 0;
+}
+
+p {
+	word-wrap: break-word;
+}
+
+a {
+	cursor: pointer;
+}
+
+.ui-sortable-placeholder {
+	border: 1px dotted black;
+	visibility: visible !important;
+	height: 50px !important;
+}
+
+.conf-concept-property {
+	border: 1px dotted gray;
+	margin: 0.5em 0;
+	padding: 0.5em;
+	cursor: pointer;
+	background: #F5F5F5;
+}
+
+.bold{
+	font-weight: bold;
+}
+
+.center {
+	text-align: center;
+}
+
+a.onlyTooltip {
+	color:#000000; 
+	cursor: help; 
+	text-decoration:none;
+}
+a.onlyTooltip:HOVER {
+	text-decoration:underline;
+}
+
+h1 a,h1 a:HOVER {
+	text-decoration: none;
+}

@@ -1,0 +1,23 @@
+@(prefixes : List[String], namespaces: Map[String,String])
+@if(!namespaces.keySet().isEmpty()){
+	<form class="form-horizontal" onSubmit="return handleClick()">
+	@for(prefix <- prefixes) {
+	     <div class="control-group">
+			<div class="controls">
+			@if(prefix != "rdf" && prefix != "rdfs" && prefix != "owl" && prefix != "foaf") {
+				<input type="text" class="span1" maxlength="7" value="@prefix"><span class="help-inline">@namespaces.get(prefix)</span>
+			} else{
+				<input type="text" class="span1" maxlength="7" value="@prefix" disabled><span class="help-inline">@namespaces.get(prefix)</span>
+			}
+			</div>
+		</div>
+	  }
+    <div class="form-actions">
+    	<button type="submit" class="btn btn-primary" onclick="saveNS()">Save changes</button>
+    	<button type="button" class="btn" value="Cancel" onClick="window.location.reload()">Cancel</button>
+    </div>	  
+	</form>
+	  
+} else{
+	No namespaces found...
+}

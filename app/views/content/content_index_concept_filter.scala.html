@@ -1,0 +1,39 @@
+@(concepts: List[org.apache.jena.atlas.lib.Pair[com.hp.hpl.jena.rdf.model.Resource, Integer]])
+@if(concepts.isEmpty()) {
+		<div class="alert alert-info">
+			There are no concepts which match the query.
+		</div>
+} else { 		
+	@for(concept <- concepts) {
+	<span data-value="@concept.getLeft()" data-count="@concept.getRight()" class="filter badge badge-info">@utils.ResUtils.createShortURI(concept.getLeft().toString()) (@concept.getRight())</span> 
+	}
+	
+	<script type="text/javascript">
+		$(".filter").css('cursor','pointer');
+		$(".filter").click(function() {
+			var value = $(this).attr('data-value');
+			
+			if (!$(this).hasClass("badge-success")){
+				$(this).addClass("badge-success")
+				activeFilter[activeFilter.length] = value;
+			} else {
+				$(this).removeClass("badge-success");
+				delete activeFilter[activeFilter.indexOf(value)];
+			}
+			
+			$(".filter").each(function(){
+		        if ($(this).hasClass("badge-info")){
+					$(this).removeClass("badge-info");
+				};
+		      });
+			
+			rebuildActiveFilter();
+			updateStatus();
+			
+			lastQuery = $("#searchInput").val();
+			loadIndividuals($("#searchInput").val(),1);
+		});
+		rebuildActiveFilter();
+		updateStatus();
+	</script>
+}

@@ -1,0 +1,687 @@
+@(source : String, desc : models.entity.EntityContainer, newData :  models.entity.EntityContainer)
+@import views.html.helpers._
+
+<link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/lode-enhancer.css")">
+<link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/lode-enBox.css")">
+<link rel="stylesheet" type="text/css" href="@routes.Assets.at("stylesheets/lode-deleteBox.css")">
+
+@main(desc.getShortURI() + " - Enhance ") {
+
+<div class="page-header" style="text-align: center;">
+	<h1>
+		<a data-toggle="tooltip" data-placement="bottom" title="Go to linker overview" href="/link/dbpedia/@desc.getShortURI()" style="float:left;"><img style="height: 35px; margin-right: 10px; margin-bottom: 5px;" src="@routes.Assets.at("images/leftarrowsmall.png")"/></a>
+		<span>Enhance <a  class="text-info" style="text-decoration: none" href="/content/entity/@desc.getShortURI()">@if(desc.getReadableNames().size()==0) {
+			@desc.getShortURI()
+		} else {
+			@desc.getInstanceName()
+		}</a> with data from <span class="text-success">@source</span></span>
+		<a data-toggle="tooltip" data-placement="bottom" title="Go to entity overview" href="/content/entity/@desc.getShortURI()" style="float:right;"><img style="height: 35px; margin-right: 10px; margin-bottom: 5px;" src="@routes.Assets.at("images/exitsmall.png")"/></a>
+	</h1>
+</div>
+
+<div class="row">
+	<div class="span6">
+		<div class="alert alert-info">
+			<h4>local</h4> (<h5 id="local_concept">@desc.getShortURI()</h5>)			
+    	</div>  
+	</div>
+	<div class="span6">
+		<div class="alert alert-success">
+			<h4>@source</h4>
+		</div>		
+	</div>
+</div>
+<br/>
+
+<span class="en-header">Concepts</span>
+<hr class="base-line"/>
+<span id="concept-local-add" class="en-box en-box-inline drop" data-field="value" data-category="concept" style="display:none;">\u2295 add new concept</span>
+<div class="row">
+	<div id="concept-local-border" class="span6">
+		@Html(utils.ViewUtils.buildEnhancerBox("concept", "local", desc))
+	</div>
+	<div id="concept-remote-border" class="span6">
+		@Html(utils.ViewUtils.buildEnhancerBox("concept", "remote", newData))
+	</div>
+</div>
+<br/><br/>
+<span class="en-header">Data Properties</span>
+<hr class="base-line"/>
+<span id="dataproperties-local-add" class="en-box en-box-inline drop" data-field="dataproperties" style="display:none;">\u2295 add new data property</span>
+<div class="row">
+	<div id="dataproperties-local-border" class="span6">
+		@Html(utils.ViewUtils.buildEnhancerBox("dataproperties", "local", desc))
+	</div>
+	<div id="dataproperties-remote-border" class="span6">		
+		@Html(utils.ViewUtils.buildEnhancerBox("dataproperties", "remote", newData))
+	</div>
+</div>
+<br/><br/>
+<span class="en-header">Object Properties</span>
+<hr class="base-line"/>
+<span id="objectproperties-local-add" class="en-box en-box-inline drop" data-field="objectproperties" style="display:none;">\u2295 add new object property</span>
+<div class="row">
+	<div id="objectproperties-local-border" class="span6">
+		@Html(utils.ViewUtils.buildEnhancerBox("objectproperties", "local", desc))
+	</div>
+	<div id="objectproperties-remote-border" class="span6">
+		@Html(utils.ViewUtils.buildEnhancerBox("objectproperties", "remote", newData))
+	</div>
+</div>
+
+<div id="del-box">
+	<div id="del-box-body">
+		<div id="del-box-content" class="ui-widget-content ui-corner-all del-box-out">
+			<div id="del-box-text">Drop here for deleting</div>
+		</div>
+	</div>
+</div>
+
+@enhancerDialog("Confirm New Data","enhance")
+
+@linkerDialog("concept", settings.Settings.REL_CONCEPT)
+@linkerDialog("property", settings.Settings.REL_PROPERTY)
+
+<script type="text/javascript">
+	$('#nav_content').addClass('active');
+	
+	$('.btn').button();
+		
+    $('.scroll-pane').jScrollPane({
+     	showArrows: true,
+		arrowScrollOnHover: true,
+	    animateScroll: true,
+	    horizontalDragMaxWidth: 0,
+	    mouseWheelSpeed: 30
+    });
+	
+    $(dragElement());
+    
+    $(dropElement());
+    
+    $(lodetooltip());
+    
+   	$('#del-box-body')
+   			.droppable(
+   					{
+   						disabled: true,
+   						over : function() {
+   							$( "#del-box-body" ).animate({opacity: 1.0});
+   							$('#del-box-content').removeClass('del-box-out')
+   									.addClass('del-box-over');
+   							$( ".drop" ).droppable({ disabled: true });   							
+   						},
+   						out : function(event, ui) {
+   							$( "#del-box-body" ).animate({opacity: 0.6});
+   							$('#del-box-content').removeClass('del-box-over')
+   									.addClass('del-box-out');
+							$( ".drop" ).droppable({ disabled: false });   
+   							$( ".drop" ).removeClass('ui-state-hover');   							
+   							$( ".drop" ).each(function() {
+   								if($(this).attr('data-category') != 'concept') {
+   									$(this).children('a').css("color","\'rgb(66, 66, 66)\'");
+   								}	
+   							});
+   						},
+   						drop : function(event, ui) {
+   							document.getElementById('del-box-text').innerHTML = 'Deleting ...';
+   							$( ".drop" ).removeClass('ui-state-hover');
+
+   							var instance = document.getElementById('local_concept').innerHTML;
+   							var lang = '';
+   							if(typeof ui.draggable.attr('data-uri') !== "undefined" && ui.draggable.attr('data-type') == 'property') {
+   								var property = ui.draggable.attr('data-uri');   								
+   								var box = ui.draggable.attr('id').split("-")[0];
+   								var value = '';
+   							} else {
+   								var property = ui.draggable.parent().parent().children('dt').children('span').attr('data-uri');
+   								var box = ui.draggable.attr('data-category');
+   								
+   								if(ui.draggable.children('span').attr('data-format') != undefined) {
+   									var value = document.getElementById(ui.draggable.attr('id')).children[0].innerHTML;
+   									var lang = ui.draggable.children('span').attr('data-lang');
+   									if(ui.draggable.children('span').attr('data-format').length>0) {
+   										value += "^^"+ui.draggable.children('span').attr('data-format');
+   									} else if(lang!="" && lang.length>0) {
+   										value += "@@"+lang;
+   									}   									
+   								} else {
+   									var value = ui.draggable.children('a').attr('href')
+   								}
+
+   							}
+   							
+   							$
+   									.get(
+   											'/link/rmlink',
+   											{
+   												instance: instance,
+   												property : property,
+   												value : value,
+   											},
+   											function(data) {
+   												var lm_available = 'false'
+									  		    if(document.getElementById(box+'-remote-loadmore') != null) {
+									  		   	 	 lm_available = 'true'
+									  		    }
+   												   												
+   												reloadContent (instance, box, 'local', 'false');
+   												reloadContent (instance, box, 'remote', lm_available); 
+   												$('#del-box-content').hide();
+   												document
+   														.getElementById('del-box-text').innerHTML = 'Drop here to delete.';
+   											});
+   						}
+   					});
+
+    $('#del-box-content').hide();
+    
+    function showDeleteBox() {
+    	$( "#del-box-body" ).droppable({ disabled: false }); 
+    	$( "#del-box-body" ).animate({opacity: 0.6});
+    	$('#del-box-content').show('drop', {
+    		direction : 'down',
+    	}, 400);
+    };
+
+    function hideDeleteBox() {
+    	$( "#del-box-body" ).droppable({ disabled: true }); 
+    	$('#del-box-content').removeClass('del-box-over').addClass('del-box-out');
+    	$('#del-box-content').hide('drop', {
+    		direction : 'down'
+    	}, 400);
+    }
+    		
+	function reloadScrollPane (id) {
+		var pane2api = $("#"+id).data('jsp');
+		if(pane2api != undefined) {
+			pane2api.reinitialise();
+		}
+	}
+
+	function showMoreText (data, htmlID) {
+  		if($(data).html()=='show more') {  		
+  			$(data).html('show less');
+  			$(data).parent().children("span").eq(0).attr('style','');
+  			$(data).parent().children("span").eq(1).attr('style','display:none;');
+  		} else {
+  			$(data).html('show more');
+  			$(data).parent().children("span").eq(0).attr('style','display:none;');
+  			$(data).parent().children("span").eq(1).attr('style','');
+  		} 		
+  		
+  		reloadScrollPane(htmlID+"-content");
+  	}
+	
+	var dict = {};
+	function expandBox (id, preview) {
+		var obj = document.getElementsByTagName("dl")
+		
+		if(document.getElementById(id)==null) {
+			return;
+		}
+		
+		var val = document.getElementById(id).innerHTML.replace(/^\s*/, "").replace(/\s*$/, "")
+		var cou = preview;
+
+		if(val == '+') {
+			dict[id] = document.getElementById(id+"-content").childNodes[0].style.height;
+			if(id.indexOf('concept') != -1) {
+				document.getElementById(id+"-content").style.height = (parseInt(dict[id])*1.5)+'px';
+			} else {
+				document.getElementById(id+"-content").style.height = (parseInt(dict[id])*1.5)+'px';
+			}
+		} else {
+			document.getElementById(id+"-content").style.height = dict[id];
+		}
+				
+		for(var i = 0; i < obj.length; i++) {
+			if(obj[i].getAttribute('id')!=null && obj[i].getAttribute('id').indexOf(id) !=-1 && cou != 0) {
+				cou--;
+			}
+			else if(obj[i].getAttribute('id')!=null && obj[i].getAttribute('id').indexOf(id) !=-1 && val == '+') {
+				obj[i].style.display = '';
+				$('#'+obj[i].getAttribute('id')).hide();				
+                $('#'+obj[i].getAttribute('id')).fadeIn('slow', function() {
+                	
+                });  
+                $("#"+id).text("-")     
+			}
+			else if(obj[i].getAttribute('id')!=null && obj[i].getAttribute('id').indexOf(id) !=-1 && val == '-') {
+				$('#'+obj[i].getAttribute('id')).fadeOut(0, function() {					
+					$("#"+id).text("+")
+                });					
+			}
+		}
+
+		reloadScrollPane(id+"-content");
+	}
+	
+	function reloadContent (name, category, position, normal) {
+		var id = document.getElementById('local_concept').innerHTML;
+					
+		var status = 'close';
+		if(document.getElementById(category+"-"+position+"-border").innerHTML.indexOf("expandBox")>0 && document.getElementById(category+"-"+position+"-border").innerHTML.indexOf(">-</td>")>0) {
+			status = 'open';
+		}
+		
+		if(document.getElementById(category+"-"+position+"-border").hasChildNodes() && document.getElementById(category+"-"+position+"-border").children[0] != undefined) {
+			document.getElementById(category+"-"+position+"-border").children[0].innerHTML = "<div style=\"text-align: center;\"><img style=\"padding: 50px;\" width=\"80\" height=\"80\" src=\"/assets/images/ajax_loader_gray_512.gif\"></img></div>"
+		} else {
+			document.getElementById(category+"-"+position+"-border").innerHTML = "<div style=\"text-align: center;\"><img style=\"padding: 50px;\" width=\"80\" height=\"80\" src=\"/assets/images/ajax_loader_gray_512.gif\"></img></div>"
+		}
+		
+		$.get("/enhance/"+id+"/"+category+"/"+position+"/"+normal+"/reload", function(data){				
+			document.getElementById(category+"-"+position+"-border").innerHTML = data;
+			
+			$(lodetooltip());   
+			$('.scroll-pane').jScrollPane({
+	     		showArrows: true,
+				arrowScrollOnHover: true, 
+		   		animateScroll: true,
+		    	horizontalDragMaxWidth: 0,
+		    	mouseWheelSpeed: 30
+			});
+			dropElement();
+			dragElement();			
+				
+			if(status == 'open') {
+  		    	expandBox(category+"-"+position, "2");
+			}
+		});	
+	}
+	
+	function handleDragAndDrop ( event, ui ) {
+		if(event.target.getAttribute('data-type') == 'value') {		
+			var obj = $.merge($('div'),$('#concept-local-add'));
+
+			for(var i = 0; i < obj.length; i++) {	
+				var objId = '#'+obj[i].getAttribute('id');	
+				
+				if(event.target.getAttribute('id').indexOf('local') == -1 && obj[i].hasAttribute('data-field') && obj[i].getAttribute('data-field')=='value' && obj[i].hasAttribute('data-category') && obj[i].getAttribute('data-category') == event.target.getAttribute('data-category') && obj[i].getAttribute('style') == 'display:none;') {
+					$(objId).droppable({ disabled: false });
+					obj[i].setAttribute('style', 'margin-bottom: 2px;');
+					if(obj[i].getAttribute('id') == 'concept-local-add') {
+						obj[i].setAttribute('style', 'margin-bottom: 2px; width: 48%;');
+					}
+				} else if(obj[i].hasAttribute('data-field') && obj[i].getAttribute('data-field')=='value' && obj[i].hasAttribute('data-category') && obj[i].getAttribute('data-category') == event.target.getAttribute('data-category') && obj[i].getAttribute('style').indexOf('margin-bottom: 2px;') != -1) {
+					$(objId).droppable({ disabled: true });
+					obj[i].setAttribute('style', 'display:none;');
+				}
+				
+				if(event.target.getAttribute('id') == obj[i].getAttribute('id')) {
+					$(objId).droppable({ disabled: true });
+					$(objId).removeClass('ui-state-disabled');
+					continue;
+				}	
+				
+				if(event.type === 'dragstart' && event.target.getAttribute('data-category') == 'concept' && obj[i].getAttribute('data-category') == 'concept' && obj[i].getAttribute('data-type') == 'value' && !$(objId).hasClass('en-box') && obj[i].hasAttribute('id')) {
+					$(objId).addClass('en-box en-box-inline');
+					$(objId).draggable({ disabled: true });
+					$(objId).droppable({ disabled: false });
+					document.getElementById(obj[i].getAttribute('id')).innerHTML = '&nbsp;\u25B6 ' + document.getElementById(obj[i].getAttribute('id')).innerHTML;
+				} else if(obj[i].getAttribute('data-category') == 'concept' && obj[i].getAttribute('data-type') == 'value' && $(objId).hasClass('en-box')) {
+					$(objId).draggable({ disabled: false });
+					$(objId).droppable({ disabled: true });
+					$(objId).removeClass('en-box en-box-inline ui-state-disabled');
+ 					document.getElementById(obj[i].getAttribute('id')).innerHTML = document.getElementById(obj[i].getAttribute('id')).innerHTML.replace('&nbsp;\u25B6 ','');
+				}
+			}	
+		} 
+		
+		if(event.target.getAttribute('data-type') == 'property') {
+			$('#'+event.target.getAttribute('id')).droppable({ disabled: true });
+			var obj = document.getElementsByTagName("span")					
+			for(var i = 0; i < obj.length; i++) {
+				var objId = '#'+obj[i].getAttribute('id');	
+				
+				if(event.target.getAttribute('data-uri') == obj[i].getAttribute('data-uri')) {
+					$(objId).droppable({ disabled: true });
+					$(objId).removeClass('ui-state-disabled');
+					continue;
+				}			
+								
+				if(event.type === 'dragstart' && obj[i].hasAttribute('data-type') && obj[i].getAttribute('data-type').indexOf('property') !=-1 && !$(objId).hasClass('en-box')) {		
+					$(objId).addClass('en-box en-box-inline');
+					$(objId).draggable({ disabled: true });
+					$(objId).droppable({ disabled: false });
+					document.getElementById(obj[i].getAttribute('id')).innerHTML = '&nbsp;\u25B6 '+document.getElementById(obj[i].getAttribute('id')).innerHTML;
+  					document.getElementById(obj[i].getAttribute('id')).getElementsByTagName('a')[0].style.color="";
+				} else if(obj[i].hasAttribute('data-type') && obj[i].getAttribute('data-type').indexOf('property') !=-1 && $(objId).hasClass('en-box')) {					
+					$(objId).draggable({ disabled: false });
+					$(objId).droppable({ disabled: true });
+					$(objId).removeClass('en-box en-box-inline ui-state-disabled');
+					document.getElementById(obj[i].getAttribute('id')).innerHTML = document.getElementById(obj[i].getAttribute('id')).innerHTML.replace('&nbsp;\u25B6 ','');
+  					document.getElementById(obj[i].getAttribute('id')).getElementsByTagName('a')[0].style.color="#424242";
+				} else if(event.target.getAttribute('id').indexOf('local') == -1 && obj[i].hasAttribute('data-field') && event.target.getAttribute('id').indexOf(obj[i].getAttribute('data-field')) != -1 && obj[i].getAttribute('style') == 'display:none;') {
+					$(objId).droppable({ disabled: false });
+					obj[i].setAttribute('style', 'width: 48%; margin-bottom: 2px;');
+				} else if(obj[i].hasAttribute('data-field') && event.target.getAttribute('id').indexOf(obj[i].getAttribute('data-field')) != -1 && obj[i].getAttribute('style') == 'width: 48%; margin-bottom: 2px;') {
+					$(objId).droppable({ disabled: true });
+					obj[i].setAttribute('style', 'display:none;')	
+				}
+			}					
+		}	
+		
+		if(event.target.getAttribute('id').indexOf('local') != -1) {
+			showDeleteBox();
+		}
+		
+		// TODO move to css file
+		ui.helper.css("width", 350);
+		ui.helper.css("border", "2px solid #BDBDBD");
+		ui.helper.css("border-radius", 10);
+		ui.helper.css("padding", 4);
+		ui.helper.css("background-color", "rgba(230,230,230,0.5)");
+		
+		if(event.target.hasAttribute('data-category')) {
+			reloadScrollPane(event.target.getAttribute('data-category')+"-local-content");
+		}
+	}
+	
+	function dragElement() {
+		$( ".drag" ).draggable({ 	
+			appendTo: 'body',
+	  		scroll: true,
+			helper: 'clone',
+			disabled: false,
+			distance: 30,
+			start: function( event, ui ) {
+				handleDragAndDrop(event, ui);
+			},
+			stop: function( event, ui ) {
+				handleDragAndDrop(event, ui);
+				hideDeleteBox(event, ui);	
+				$(lodetooltip());  
+			},
+			revert: true
+		});
+	} 
+	
+	var local,remote,value,length=0,relation,box,concept;
+	function dropElement () {	
+		$( ".drop" ).droppable({			
+			activeClass: "ui-state-hover",
+			hoverClass: "ui-state-active",
+			disabled: true,
+			deactivate: function( event, ui ) {
+				$( ".drop" ).each(function() {
+					if($(this).attr('data-category') != 'concept') {
+						$(this).children('a').css("color","\'rgb(66, 66, 66)\'");
+					}	
+				});		
+			},
+// 			over : function(event, ui) {
+// 				$( ".drop" ).each(function(index) {
+// 					if($(this) != event.target) {
+// 						$(this).droppable({ disabled: true });   
+// 					}
+// 				});
+// 			},
+// 			out : function(event, ui) {
+// 				$( ".drop" ).each(function(index) {
+// 					if($(this) != event.target) {
+// 		 				$( ".drop" ).droppable({ disabled: false });   
+// 		 				$( ".drop" ).removeClass('ui-state-hover'); 	
+// 					}
+// 				});
+// 			},
+			drop: function( event, ui ) {
+				local = undefined;
+				remote = undefined;
+				value = undefined;
+				box=event.target.getAttribute('id').substring(0,event.target.getAttribute('id').indexOf('-'));								   
+			    
+		    	local = $(this).attr('data-uri');
+			    remote = ui.draggable.attr('data-uri');
+			    concept = document.getElementById("local_concept").innerHTML;
+			    		    
+			    if(event.target.getAttribute('data-category') == 'concept' ) {			    
+				    if(local == undefined && remote != undefined) {
+					    remote = ui.draggable.parent().parent().children("dt").children("span").attr('data-uri');
+					    if(document.getElementById('concept-local-content') != undefined) {
+				    		local = document.getElementById('concept-local-content').getElementsByTagName("span")[0].getAttribute('data-uri');
+					    } else {
+					    	local = remote;
+					    }
+					    value = ui.draggable.children("a").attr('href');
+				    }
+			    } else {
+				    if(local == undefined && remote == undefined) {
+				    	local = $(this).parent().parent().children("dt").children("span").attr('data-uri');
+					    remote = ui.draggable.parent().parent().children("dt").children("span").attr('data-uri');
+				    }		
+				    
+				    try {
+				    	value = ui.draggable.children("span")[0].innerHTML;
+				    } catch(err) {
+				    	value = ui.draggable.children("a").attr('href');
+				    }
+			    }
+	
+			    document.getElementById("propertyform").style.display = "none";
+				document.getElementById("propertyform-header").style.display = "none";
+			    
+			    if(local != undefined && remote != undefined && value == undefined) {
+				    if(event.target.getAttribute('data-category')  == 'concept') {	
+					    $('#linker-relation-text-concept').html('is equivalent to');
+					    $('#linker-valueA-short-concept').text(local);
+					    changeTooltipContent('#linker-valueA-long-concept', toHtmlLink($(this).attr('data-uri-long')));			
+					    $('#linker-valueB-short-concept').text(remote);
+					    changeTooltipContent('#linker-valueB-long-concept', toHtmlLink(ui.draggable.attr('data-uri-long')));	
+					    changeTooltipContent('#linker-relation-uri-concept', toHtmlLinkShort('http://www.w3.org/2002/07/owl#equivalentClass','owl:equivalentClass'));
+					    relation='owl:equivalentClass';
+					    $('#linkerDialog-concept').modal('show');
+				    } else if(event.target.getAttribute('data-category')  === null) {
+					    $('#linker-relation-text-property').html('is equivalent to');
+					    $('#linker-valueA-short-property').text(local);
+					    changeTooltipContent('#linker-valueA-long-property', toHtmlLink($(this).attr('data-uri-long')));			
+					    $('#linker-valueB-short-property').text(remote);
+					    changeTooltipContent('#linker-valueB-long-property', toHtmlLink(ui.draggable.attr('data-uri-long')));	
+					    changeTooltipContent('#linker-relation-uri-property', toHtmlLinkShort('http://www.w3.org/2002/07/owl#equivalentProperty','owl:equivalentProperty'));
+					    relation='owl:equivalentProperty';
+					    $('#linkerDialog-property').modal('show');
+				    }
+			    } else if(local == undefined && remote != undefined) {
+			    	$('#dialogTitle').text("Add New Property");	
+			    	$('#text1').text("Add new property");
+			    	$('#value').text("");
+			    	$('#source').text(remote);
+			    	$('#text2').text("");
+			    	$('#destination').text("");
+
+			    	local = document.getElementById("local_concept").innerHTML;
+			    	
+				    changeTooltipContent('#source', toHtmlLink(ui.draggable.parent().parent().children("dt").children("span").attr('data-uri-long')));
+			    	
+				    $.get("/enhance/"+local+"/"+remote+"/values",
+							   function(data){
+									var values = data.split("</span>");
+									document.getElementById("propertyform-values").innerHTML='';
+									
+									for(var i=0; i<values.length-1; i++) {
+										var full = values[i].substring(values[i].lastIndexOf('>')+1);
+									    var lang = values[i].substring(values[i].indexOf('data-lang=\'')+11);
+									    lang = lang.substring(0,lang.indexOf('\''));
+									    var format = values[i].substring(values[i].indexOf('data-format=\'')+13);
+									    format = format.substring(0,format.indexOf('\''));
+									    var display = full;
+									    
+										if(display.length>60) {
+											display = display.substring(0, 60) + " ..."
+										}
+										if(lang.length>0) {
+											display += " ("+lang+")";
+										}
+										
+										document.getElementById("propertyform-values").innerHTML=document.getElementById("propertyform-values").innerHTML+"<div style=\"margin-left:30px;\"><label id=\"form0"+i+"\" style=\"white-space:nowrap;\"><input id=\"cb0"+i+"\" type=\"checkbox\" onclick=\"addValue(this)\"> <span id=\"v0"+i+"\" style=\"white-space:normal; font-style: italic;\" data-fulltext=\""+full+"\" data-lang=\""+lang+"\" data-format=\""+format+"\">"+display+"</span></label></div>";
+									}
+									
+									if(values.length == 2) { // length 2 means 1 value
+										var entry = document.getElementById("cb00");
+										entry.checked = true;
+										addValue(entry);
+									}
+									
+									document.getElementById("propertyform-header").style.display = "";
+									document.getElementById("propertyform").style.display = "";
+									$('#submitEnhancerButton').attr('disabled', 'disabled').addClass('disabled');
+																		
+									$('#enhancerDialog').modal('show');	
+							   }
+				    );	
+				    
+			    } else if(local != undefined && remote != undefined && value.length > 0) {
+			    	$('#dialogTitle').text("Add New Value");
+			    	$('#text1').text("Add new value");
+			    	$('#value').text(value);
+			    	$('#source').text(" ("+remote+")");
+			    	$('#text2').text("to");
+			    	$('#destination').text(local);
+			    	
+				    changeTooltipContent('#source', toHtmlLink(ui.draggable.parent().parent().children("dt").children("span").attr('data-uri-long')));
+				    changeTooltipContent('#destination', toHtmlLink($(this).parent().parent().children("dt").children("span").attr('data-uri-long')));
+			    	
+			    	remote = local;
+				    local = document.getElementById("local_concept").innerHTML;
+				    
+			    	lang = ui.draggable.children("span").attr('data-lang');				    
+			    	if(lang != undefined && lang.length>0) {
+						value+="@@"+lang;
+			    	}
+			    	
+			    	format = ui.draggable.children("span").attr('data-format');
+			    	if(format != undefined && format.length>0) {
+			    		value+="^^"+format;
+			    	}
+				    
+				    if(ui.draggable.parent().parent().children("dt").children("span").children("a").attr('title') == undefined) {
+					    changeTooltipContent('#source', toHtmlLink("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"));
+					    changeTooltipContent('#destination', toHtmlLink("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"));
+				    }
+							    
+				    $('#enhancerDialog').modal('show');
+			    }
+			}
+		});
+	}	
+	
+	$("#submitEnhancerButton").click(function() {
+		  $('#cancelButton').attr('disabled', 'disabled').addClass('disabled');
+		  $('#submitEnhancerButton').button('loading');
+		
+		  $.get("/enhance/insert", { local: local, remote: remote, value: value },
+				   function(){
+			  		   var lm_available = 'false'
+			  		   if(document.getElementById(box+'-remote-loadmore') != null) {
+			  		   		lm_available = 'true'
+			  		   }
+			  
+			  		   reloadContent(concept, box, 'local', 'false');
+			  		   reloadContent(concept, box, 'remote', lm_available);
+					   $('#enhancerDialog').modal('hide');
+				   });			  
+	});
+	
+	$('#enhancerDialog').on('hidden', function () {
+		   $('#cancelButton').button('reset');
+		   $('#submitEnhancerButton').button('reset');		   
+	})	
+	
+	$("#submitLinkerButton-concept").click(function() {
+		  $('#cancelLinkerButton-concept').attr('disabled', 'disabled').addClass('disabled');
+		  $('#submitLinkerButton-concept').button('loading');
+		  
+		  $.get("/link/setlink", { local: local, remote: remote, relation: relation },
+				   function(data){
+			  			$('#linkerDialog-concept').modal('hide')
+				   });
+	});	
+	
+	$("#submitLinkerButton-property").click(function() {
+		  $('#cancelLinkerButton-property').attr('disabled', 'disabled').addClass('disabled');
+		  $('#submitLinkerButton-property').button('loading');
+		  
+		  $.get("/link/setlink", { local: local, remote: remote, relation: relation },
+				   function(data){
+			  			$('#linkerDialog-property').modal('hide')
+				   });
+	});	
+	
+	$('#linkerDialog-concept').on('hidden', function () {
+		   $('#cancelLinkerButton-concept').button('reset');
+		   $('#submitLinkerButton-concept').button('reset');
+	})	
+	
+	$('#linkerDialog-property').on('hidden', function () {
+		   $('#cancelLinkerButton-property').button('reset');
+		   $('#submitLinkerButton-property').button('reset');
+	})	
+	
+	function addValue (data) {
+		if(value == undefined) {
+			value = "";
+			lang = "";
+		}
+		
+		var entry = document.getElementById("v0"+data.id.replace('cb0',''));
+		
+		var tmp=entry.getAttribute('data-fulltext')
+		if(entry.getAttribute('data-format') != 'undefined' && entry.getAttribute('data-format').length>0) {
+			tmp+="^^"+entry.getAttribute('data-format')
+		}
+		if(entry.getAttribute('data-lang')!= 'undefined' && entry.getAttribute('data-lang').length>0) {
+			tmp+="@@"+entry.getAttribute('data-lang');
+		}
+		
+		tmp+=" $##$!";
+		
+		if(data.checked) {	
+			value+=tmp;
+		} else {		
+			value=value.replace(tmp, "");
+		}
+		
+		if(value.length>0) {
+			$('#submitEnhancerButton').button('reset');
+		} else {
+			$('#submitEnhancerButton').attr('disabled', 'disabled').addClass('disabled');
+		}
+	}
+
+	
+	function setEnhancerRelation (data) {
+		value=data.value;
+	}
+	
+	function setLinkerRelation (data) {	
+		var shortURI = $(data).attr('data-uri-short');
+		var longURI = $(data).attr('data-uri-long');
+		var type = $(data).attr('data-type');
+		
+		$('#linker-relation-text-'+type).attr('data-uri-short', shortURI);
+		$('#linker-relation-text-'+type).attr('data-uri-long', longURI);
+		
+		changeTooltipContent('#linker-relation-uri-'+type, toHtmlLinkShort(longURI, shortURI)); 
+		$('#linker-relation-text-'+type).text(data.innerHTML);	
+		
+		relation = shortURI;
+	}			
+		
+	function changeTooltipContent(element, content)
+	{
+    	$(element).prop("title",content);
+    	$(lodetooltip());
+	}
+	
+    function toHtmlLink(uri)
+    {
+    	return toHtmlLinkShort(uri, uri)
+    }
+    
+    function toHtmlLinkShort(uri1, uri2)
+    {
+    	return "<b><a href='" + uri1 + "' style='color: #FFFFFF; text-decoration:none;' target='_blank'>" + uri2 + "</a></b>";
+    }
+</script>
+}

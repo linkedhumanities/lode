@@ -1,0 +1,206 @@
+@(map : Map[String, List[models.entity.Value]])
+
+@index_configuration("Relations") {
+
+<div class="accordion" id="accordion">
+	<div class="accordion-group">
+		<div class="accordion-heading">
+			<a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" href="#collapseOne">
+				between instances
+			</a>
+		</div>
+		<div id="collapseOne" class="accordion-body collapse">
+			<div class="accordion-inner">				
+				@table("1","tabInstance")			
+			</div>
+		</div>
+	</div>
+	<div class="accordion-group">
+		<div class="accordion-heading">
+			<a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" href="#collapseTwo">
+				between concepts/classes
+			</a>
+		</div>
+		<div id="collapseTwo" class="accordion-body collapse">
+			<div class="accordion-inner">
+				@table("2","tabConcept")
+			</div>
+		</div>
+	</div>
+	<div class="accordion-group">
+		<div class="accordion-heading">
+			<a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" href="#collapseThree">
+				between properties
+			</a>
+		</div>
+		<div id="collapseThree" class="accordion-body collapse">
+			<div class="accordion-inner">
+				@table("3","tabProperty")
+			</div>
+		</div>
+	</div>
+</div>
+
+	<div id="modalDialog" class="modal hide fade">
+		<div class="modal-header">
+			<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+			<h3 id="mdHeader"></h3>
+		</div>
+		<div id="mdBody" class="modal-body">
+		
+		</div>
+		<div class="modal-footer">
+			<a href="#" data-dismiss="modal" class="btn">Cancel</a>
+			<a href="#" class="btn btn-primary" onClick="confirm()">Save changes</a>
+		</div>
+	</div>
+
+
+	<script type="text/javascript">
+		$('#nav_conf_relations').addClass('active');
+		
+		var state = -1; // 1 = add, 2 = delete
+		var type = -1; // 1 = instance, 2 = concept, 3 = property
+		
+		function add(i){
+			state = 1;
+			type = i;
+						
+			switch(type)
+			{
+			case 1:
+				$('#mdHeader').text('Add a relation between instances');
+				break;
+			case 2:
+				$('#mdHeader').text('Add a relation between concepts');
+			  	break;
+			case 3:
+				$('#mdHeader').text('Add a relation between properties');
+			  	break;				  	
+			default:
+				alert('An error occured.');			
+				return;
+			}	
+								
+			$('#mdBody').html(
+			'<form class="form-horizontal">'+
+			'<div class="control-group"><label class="control-label" for="inputURL">URL</label>'+
+			 '<div class="controls"><input class="input-xlarge" type="text" id="inputURL" placeholder="URL"></div></div>'+
+			 '<div class="control-group"><label class="control-label" for="inputDesc">description</label>'+
+			 '<div class="controls"><input class="input-xlarge" type="text" id="inputDesc" placeholder="description"></div></div>'+				 
+			 '</form>'
+			);	
+			$('#modalDialog').modal();						
+		}
+		
+		var row, url, desc;
+		function confirm_delete(e,i){
+			state = 2;
+			type = i;		
+			switch(type)
+			{
+			case 1:
+				$('#mdHeader').text('Delete a relation between instances');
+				break;
+			case 2:
+				$('#mdHeader').text('Delete a relation between concepts');
+			  	break;
+			case 3:
+				$('#mdHeader').text('Delete a relation between properties');
+			  	break;				  	
+			default:
+				alert('An error occured.');			
+				return;
+			}			
+			
+			row = $(e).parent().parent();
+			
+			var cells = row.children().first();
+			url = $(cells).text();
+			desc = $(cells).next().text();
+			
+			$('#mdBody').html("<dl><dt>URL</dt><dd>"+ url +"</dd><dt>Description</dt><dd>" + desc + "</dd></dl>");
+		    $('#modalDialog').modal();		   
+		}
+		
+		
+		function confirm(){
+			
+			//add
+			if(state == 1){
+				url = $.trim($('#inputURL').val());
+				desc = $.trim($('#inputDesc').val());
+													
+				var table = '';
+				
+				switch(type)
+				{
+				case 1:
+					table = "#tabInstance tbody";
+					break;
+				case 2:
+					table = "#tabConcept tbody";
+				  	break;
+				case 3:
+					table = "#tabProperty tbody";
+				  	break;				  	
+				default:
+					alert('An error occured.');			
+					return;
+				}
+				
+				var new_row =	'<tr><td>' + url + '</td>' +
+								'<td>' + desc + '</td>' +
+                  				'<td><button class="btn btn-mini" type="button" onclick="confirm_delete(this,' + type + ')">delete</button></td></tr>';                  		
+                 				
+               $.get( "/conf/relations/add" , { type: type, url : url, desc: desc}, function( data ) {		
+					$(table + ' tr').each(function( index ) {
+						var temp = $(this).children().first().text();
+						if (temp === url){
+							$(this).remove();
+						}
+					});
+					
+					
+					$(table).append(new_row);
+               });  	
+			}
+			
+			//remove
+			if (state == 2){
+	               $.get( "/conf/relations/remove" , { type: type, url : url, desc: desc}, function( data ) {                  								
+						$(row).remove();
+	               });  								
+			}
+			
+			$('#modalDialog').modal('hide');			
+		}
+		
+	</script>
+		
+}
+
+
+@table(i : String, tabName: String) = {
+				<table id="@tabName" class="table table-condensed table-striped table-hover">
+	              <thead>
+	                <tr>
+	                  	<th style="width: 400px;">property</th>
+	                  	<th style="width: 400px;">description</th>
+						<th style="width: 400px;">action</th>                  
+	                </tr>
+	              </thead>
+	              <tbody>
+	              	@for(value <- map.get(i)){
+	              	<tr>
+						<td>@value.getValue()</td>
+	                  	<td>@value.getDescription()</td>
+	                  	<td>@if(!value.getValue().equals("http://www.w3.org/2002/07/owl#sameAs")){<button class="btn btn-mini" type="button" onclick="confirm_delete(this,@i)">delete</button>}</td>
+	                 </tr>	                  		              
+	              	}	              
+	              </tbody>
+	            </table>
+	            <div style="text-align:center;">
+					<button class="btn btn-small btn-primary" type="button" onclick="add(@i)">add relations</button>	            
+	            </div>	
+}

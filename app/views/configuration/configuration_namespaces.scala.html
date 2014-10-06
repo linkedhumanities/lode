@@ -1,0 +1,122 @@
+@index_configuration("Namespaces") {
+Update prefixes of the namespaces. 		
+<button type="submit" class="btn  btn-mini" onclick="openAddDialog()">add a namespace</button>
+<button type="submit" class="btn  btn-mini" onclick="openDeleteDialog()">delete a namespace</button>
+<hr>
+<div id="ns-form"></div>
+
+<div id="modalDialog" class="modal hide fade">
+	<div class="modal-header">
+		<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+		<h3 id="mdHeader"></h3>
+	</div>
+	<div id="mdBody" class="modal-body">
+		<p>One fine body</p>
+	</div>
+	<div class="modal-footer">
+		<a href="#" data-dismiss="modal" class="btn">Cancel</a>
+		<a href="#" class="btn btn-primary" onClick="saveDialog()">Save changes</a>
+	</div>
+</div>
+
+<script type="text/javascript">
+	$('#nav_conf_namespaces').addClass('active');
+	
+	$.get("/conf/namespaces/load", { time: new Date().getTime()}, function(data){
+		$('#ns-form').html(data);
+	});
+	
+	function handleClick()
+	{
+	  return false;
+	}
+	
+	// add & delete dialog start
+	
+	var state;
+	
+	function openDeleteDialog(){
+		state = 0;
+		$('#mdHeader').text('Delete Namespace');
+		
+		var content = "Select the ID you want to delete: <select id=\"deleteNS\">";
+		//for (var i = 1; i <= 5 ; i++){ content+="<option value="+ i +">"+ i +"</option>"; }
+		$('div.controls').each(function(){
+			var this_ = $(this);
+			var prefix = this_.children().first();
+			if ($(prefix).is(':disabled') == false && prefix.val().length > 0){ 
+				content+="<option value="+ prefix.val() +">"+ prefix.val() +"</option>";
+			}
+		});
+		
+		content+="</select>";
+		$('#mdBody').html(content);
+		$('#modalDialog').modal();	
+	}
+	
+	function openAddDialog(){
+		state = 1;
+		$('#mdHeader').text('Add Namespace');
+		var content = "";
+		content += "<div class=\"controls controls-row\">";
+		content += "<input id=\"newPrefix\" class=\"span1\" type=\"text\" placeholder=\"prefix\" maxlength=\"7\">";
+		content += "<input id=\"newNS\" class=\"span4\" type=\"text\" placeholder=\"namespace\">";
+		content += "</div>";
+		$('#mdBody').html(content);
+		
+		$('#modalDialog').modal();
+	}
+	
+	
+	function saveDialog(){
+		$('#modalDialog').modal('hide');
+		if (state == 0){ // delete			
+			var prefixVal = $('#deleteNS').val();
+			$.get("/conf/namespaces/remove", { prefix: prefixVal}, function(){
+				window.location.reload();
+			});
+			/*
+			//alert($('#deleteNS option:selected').text() + " - " + $('#deleteNS').val());
+			$('div.controls').each(function(){
+				var this_ = $(this);
+				var prefix = this_.children().first().val();
+				if (prefix == prefixVal){
+					this_.unwrap();	
+					this_.remove();	
+				}		
+			});*/			
+		} else if (state == 1){ // add
+			var prefixVal = $('#newPrefix').val();
+			var nsVal = $('#newNS').val();
+			$.get("/conf/namespaces/add", { prefix: prefixVal, ns: nsVal}, function(){
+				window.location.reload();
+			});		
+		} 
+		
+		
+	}
+	
+	// add & delete dialog end
+	
+	function saveNS(){
+		var map = {};
+		$('div.controls').each(function(){
+			var this_ = $(this);
+			var prefix = this_.children().first().val();
+			var uri = this_.children().last().text();
+			if (map[prefix] == undefined){
+				map[prefix] = uri;			
+			} else {
+				alert('One prefix occured twice! Nothing has been saved. (' + prefix + ')');
+				return;
+			}
+		});
+		
+		console.log(JSON.stringify(map));
+		
+		$.get("/conf/namespaces/save", { data: JSON.stringify(map)}, function(){
+			window.location.reload()
+		});
+	}
+</script>
+}
