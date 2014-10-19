@@ -1,15 +1,14 @@
 @(title: String) @main(title + " - Content ") {
 <div class="page-header">
-	<h1>
-		Explore
-	</h1>
+	<h1>Explore</h1>
 </div>
 
 <form class="form-inline" onSubmit="return handleClick()" method="get">
 	<div class="input-append">
 		<input class="span4" id="searchInput" placeholder="search..." value=""
 			name="search" size="16" type="text" autocomplete="off">
-		<button id="nonlinked" onclick="changeNonlinkedFilter()" type="button" class="btn" data-toggle="button">only non-linked</button>	
+		<button id="nonlinked" onclick="changeNonlinkedFilter()" type="button"
+			class="btn" data-toggle="button">only non-linked</button>
 		<button class="btn" onclick="startSearch()" type="submit">Go!</button>
 	</div>
 </form>
@@ -18,10 +17,14 @@
 <h4>Concept Filter</h4>
 <div id="conceptFilter"></div>
 
-<div  style="min-height: 300px;">
+<div style="min-height: 300px;">
 	<hr>
-	<div id="instancesBox">		
-		@**<h4 class="pull-left">Instances <small>page: <span class="showNumber">1</span></small></h4>**@
+	<div id="instancesBox">
+		@**
+		<h4 class="pull-left">
+			Instances <small>page: <span class="showNumber">1</span></small>
+		</h4>
+		**@
 		<div id="instances"></div>
 	</div>
 </div>
@@ -110,9 +113,9 @@
 	
 	function getConceptFilter(query,page){		
 		//$('#instancesBox').hide();		
-		$('#instances').html('<div style="margin: 0 auto; width:300px" class="progress progress-striped active"><div class="bar" style="width: 100%;">Loading Content...</div></div>');				
-		$('#conceptFilter').html('<div style="margin: 0 auto; width:300px" class="progress progress-striped active"><div class="bar" style="width: 100%;">Loading Concept Filter...</div></div>');
-		
+			  $('#instances').html('<div style="margin: 0 auto; width:300px" class="progress progress-striped active"><div class="bar" style="width: 100%;">Loading Content...</div></div>');				
+			  $('#conceptFilter').html('<div style="margin: 0 auto; width:300px" class="progress progress-striped active"><div class="bar" style="width: 100%;">Loading Concept Filter...</div></div>');
+			
 		query = $.trim(query);
 		if (query.match(/:$/)){
 			query = query.substring(0,query.length-1);
@@ -121,7 +124,7 @@
 		
 		lastQuery = query;
 		$.cookie('search_query', lastQuery);
-		$.get("/content/conceptFilter", { query: query, filter: rebuildActiveFilter(), nonlinked: nonlinked},
+		 $.get("/content/conceptFilter", { query: query, filter: rebuildActiveFilter(), nonlinked: nonlinked}).success(
 			   function(data){
 					var current = (lastQuery == data['query'] && nonlinked === JSON.parse(data['nonlinked']));
 					var selectedFilter = rebuildActiveFilter();
@@ -131,7 +134,17 @@
 					if (current && 'main' in data){     
 						$('#conceptFilter').html(data['main']);
 			     	}					
-			});
+			})
+			  .error(function(jqXHR, textStatus, errorThrown) {
+				  $('#conceptFilter .progress').removeClass('active progress-striped');
+				    var errormsg="Could not load concept filter";
+				    
+				   
+
+				    $('#conceptFilter .bar').addClass('bar-danger').text(errormsg);
+				    return false;
+			  });
+			
 		loadIndividuals(query,page);
 	}
 	
@@ -146,7 +159,7 @@
 		$('#instances').html('<div style="margin: 0 auto; width:300px" class="progress progress-striped active"><div class="bar" style="width: 100%;">Loading Content...</div></div>');				
 
 		
-		$.get("/content/instances", { query: query, page: page, filter: rebuildActiveFilter(), nonlinked: nonlinked}, function(data){
+		$.get("/content/instances", { query: query, page: page, filter: rebuildActiveFilter(), nonlinked: nonlinked}).success( function(data){
 					var current = (lastQuery == data['query'] && nonlinked === JSON.parse(data['nonlinked']));
 					var selectedFilter = rebuildActiveFilter();
 					if (current && 'filter' in data){
@@ -178,10 +191,18 @@
 					if (data['lastPage'] == 'true'){
 						$('li.nextP').addClass('disabled');
 						$.cookie('search_page', activePage);
-					}
-				}); 			
-	}
+					} 			
+	    })
+		  .error(function(jqXHR, textStatus, errorThrown) {
+			  $('#instances .progress').removeClass('active progress-striped');
+			    var errormsg="Could not load concepts";
+			    
+			    
+			    $('#instances .bar').addClass('bar-danger').text(errormsg);
+			    return false;
+		  });
 	
+	}
 	function prevPage (){
 		if (!$('li.prevP').hasClass('disabled'))
 			loadIndividuals(lastQuery, activePage-1);
@@ -201,7 +222,7 @@
 			}
 		});
 		//console.log('ID: ' + ids);
-		$.get("/content/basicProperties", { id: ids, query : query,filter : filter, nonlinked: nonlinked}, function(data){
+		$.get("/content/basicProperties", { id: ids, query : query,filter : filter, nonlinked: nonlinked}).success( function(data){
 						var current = (lastQuery == data['query'] && nonlinked === JSON.parse(data['nonlinked']));
 						var selectedFilter = rebuildActiveFilter();
 						if (current && 'filter' in data){
