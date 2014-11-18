@@ -91,7 +91,10 @@ public class LinkerController extends Controller
             
             //we have to change this behavior: we should not throw an exception but handle a null value more gracefully. 
             //This exception leads to a lot of annoyinh error messages
-            if(myActor == null) { throw new Exception("java.lang.IllegalArgumentException: Unsupported recipient ActorRef type, question not sent to [null]"); }
+            if(myActor == null) { 
+                return null;
+                //throw new Exception("java.lang.IllegalArgumentException: Unsupported recipient ActorRef type, question not sent to [null]"); 
+            } 
 
             Promise<Result> promise = Promise.wrap(Patterns.ask(myActor, new StatusMessage(), 3000)).map(new F.Function<Object, Result>() {
                 public Result apply(Object response)
