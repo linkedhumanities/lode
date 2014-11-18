@@ -26,17 +26,20 @@
             dataType: "html",
             success: function(value)
                 {
-            		var data = value.split("#!#");
-            		if(data.length==3) {
-	            		$('#step').html(data[0]);
-	                	$('#linkerprogressbar').html(data[1]+"%");
-	                	$('#status').html(data[2]);
-	                	document.getElementById('linkerprogressbar').style.width=data[1]+'%';
-            		} else {
-            			var newDoc = document.open("text/html", "replace");
-            			newDoc.write(value);
-            			newDoc.close();            			
-            			clearInterval(intervalId);
+            		if (value != null) {
+	            		var data = value.split("#!#");
+	            		
+	            		if(data.length==3) {
+		            		$('#step').html(data[0]);
+		                	$('#linkerprogressbar').html(data[1]+"%");
+		                	$('#status').html(data[2]);
+		                	document.getElementById('linkerprogressbar').style.width=data[1]+'%';
+	            		} else {
+	            			var newDoc = document.open("text/html", "replace");
+	            			newDoc.write(value);
+	            			newDoc.close();            			
+	            			clearInterval(intervalId);
+	            		}
             		}
                 }
         });
