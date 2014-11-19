@@ -35,10 +35,10 @@
 		                	$('#status').html(data[2]);
 		                	document.getElementById('linkerprogressbar').style.width=data[1]+'%';
 	            		} else {
+	            			clearInterval(intervalId);
 	            			var newDoc = document.open("text/html", "replace");
 	            			newDoc.write(value);
-	            			newDoc.close();            			
-	            			clearInterval(intervalId);
+	            			newDoc.close();
 	            		}
             		}
                 }
