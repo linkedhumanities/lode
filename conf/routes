@@ -9,6 +9,9 @@ GET		/jstree						controllers.Main.jstree()
 GET		/dbtest						controllers.Main.dbTest()
 GET		/eval						controllers.Main.eval()
 
+GET		/contentBulk				controllers.bulk.BulkController.content()
+
+
 GET		/content					controllers.content.MainController.content()
 GET		/content/conceptTypeAhead  	controllers.content.MainController.getTypeAhead()
 GET		/content/conceptFilter		controllers.content.MainController.getConcepts()
@@ -50,7 +53,10 @@ GET		/enhance/:name/:property/values	controllers.enhancers.EnhancerController.ge
 
 # Linker
 GET		/link/:source/:name			controllers.enhancers.LinkerController.link(source:String, name:String)
+GET		/linkSamePage/:source/:name			controllers.enhancers.LinkerController.linkOnSamePage(source:String, name:String)
+
 GET		/status/:id					controllers.enhancers.LinkerController.status(id:String)
+GET		/statusOnSamePage/:id		controllers.enhancers.LinkerController.statusOnSamePage(id:String)
 GET		/link/setlink				controllers.enhancers.LinkerController.setLink()
 GET		/link/more					controllers.enhancers.LinkerController.show()
 GET		/link/wikiStat				controllers.enhancers.LinkerController.wikiStat()

@@ -230,6 +230,7 @@
 						}
 						if (current && 'data' in data){		
 								// console.log(data);
+		
 								var basicProperties = data['data'];
 								$('#instances tr').each(function(i){
 									if (i > 0){
@@ -266,6 +267,8 @@
 										first = first.next();
 										var concept= objectToToolTipList(basicProperties[id]['concepts'], data['namespace']);
 										first.html(concept);
+										
+										
 										
 										var popoverContent = new Array();
 										
@@ -311,6 +314,10 @@
 											  });   
 											$("." + popoverContent[i][0]).popover({ title: 'Go to the...', html: true, content: content });
 										}
+										
+										
+										
+										
 									} 
 								}); // end instances tr each
 								//close popover start
@@ -331,6 +338,10 @@
 // 								  });
 						}
 				}); 			
+		
+		
+		
+		
 	}
 	
 	function objectToToolTipList(object, namespace){
@@ -347,7 +358,6 @@
 			//console.log(key + ' ' + values);
 			if (typeof values !== "string"){
 				for(var j=0; j<values.length; j++) {
-					result+= '<a href="#" class="onlyTooltip" data-toggle="tooltip" data-placement="top" title="' + toHtmlLinkShort(namespace[prefix]+localname, key) + '">'+values[j]+'</a>';
 					if(j<(values.length-1)|| i <keys.length-1) {
 						result+=", ";
 					}

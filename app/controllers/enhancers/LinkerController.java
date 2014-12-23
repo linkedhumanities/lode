@@ -76,11 +76,80 @@ public class LinkerController extends Controller
             return ok(displayError.render("Oh snap! An error occured!", 4042, StringUtils.getStackTrace(e)));
         }
     }
+    
+    
+    
+    public static Result linkOnSamePage(String source, String id) throws QueryExceptionHTTP
+    {
+        if(ResUtils.toLongURI(id).contains("dbpedia")) {
+            List<String> sameAs = new ArrayList<>(Content.getSameAsID(id));
+            if(sameAs.size() > 1) {
+                sameAs.remove(id);
+                id = sameAs.get(0);
+            }
+        }
+        try {
+            Map<String, String[]> req = request().queryString();
+            int method = !req.containsKey("method") ? 0 : Integer.valueOf(req.get("method")[0]);
 
+            ActorRef myActor = Akka.system().actorOf(Props.create(models.akka.LinkerActor.class));
+            myActor.tell(new ConfigMessage(id, source, method), null);
+   
+            long timeout=1000;
+           // return statusOnSamePage(myActor.path().name()).get(timeout);
+            return ok(myActor.path().name());
+        } catch(QueryExceptionHTTP e) {
+            return ok("Oh snap! An error occured!");
+        } catch(NullPointerException e) {
+            return ok("Oh snap! An error occured!");
+        }
+    }
+    
+
+    public static Promise<Result> statusOnSamePage(String uuid)
+    {
+        try {
+        	 uuid = "akka://application/user/" + uuid;
+             ActorSelection selection = Akka.system().actorSelection(uuid);
+             AskableActorSelection asker = new AskableActorSelection(selection);
+             Timeout t = new Timeout(5, TimeUnit.SECONDS);
+             Future<Object> fut = asker.ask(new Identify(1), t);
+             ActorIdentity ident = (ActorIdentity) Await.result(fut, t.duration());
+             ActorRef myActor = ident.getRef();
+
+             if(myActor == null) { throw new Exception("java.lang.IllegalArgumentException: Unsupported recipient ActorRef type, question not sent to [null]"); }
+
+             Promise<Result> promise = Promise.wrap(Patterns.ask(myActor, new StatusMessage(), 3000)).map(new F.Function<Object, Result>() {
+                 public Result apply(Object response)
+                 {
+                              	  
+                	    if(response instanceof ResultMessage) {
+                         ResultMessage rm = (ResultMessage) response;
+                         if( rm.getSuggestions().size() > 0)
+                        	 return ok( rm.getSuggestions().get(0).getShortURI());
+                         else
+                        	 return (Result) ok("No suggestions found!");
+                     }
+
+                     if(response instanceof ErrorMessage) {
+                         ErrorMessage em = (ErrorMessage) response;
+                         return (Result) ok("Oh snap! An error occured!");
+                     }
+              			return ok(response.toString());
+              		
+                 }
+             });
+
+             return promise;
+         } catch(Exception e) {
+             return Promise.pure((Result) ok("Oh snap! An error occured!"));
+         }
+     }
 
     public static Promise<Result> status(String uuid)
     {
         try {
+        	//System.out.println(uuid);
             uuid = "akka://application/user/" + uuid;
             ActorSelection selection = Akka.system().actorSelection(uuid);
             AskableActorSelection asker = new AskableActorSelection(selection);
@@ -113,7 +182,6 @@ public class LinkerController extends Controller
             return Promise.pure((Result) ok(displayError.render("Oh snap! An error occured!", 4043, StringUtils.getStackTrace(e))));
         }
     }
-
 
     public static Result setLink()
     {

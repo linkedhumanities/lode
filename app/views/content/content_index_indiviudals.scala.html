@@ -12,10 +12,13 @@
 	<table class="table table-striped">
             <thead>
                 <tr>
+                
                   <th style="width: 300px;">URI</th>
                   <th>Name</th>
                   <th>Concepts</th>
-                  <th style="text-align: center; width:64px;">sameAs<br>Links</th>
+                  <th style="text-align: center;">sameAs<br>Links</th>
+                  <th style="text-align: center; ">Top Link</th>
+                  <th style="text-align: center; ">Select</th>
                 </tr>
             </thead>
             <tbody>
@@ -25,6 +28,8 @@
                   <td></td>
                   <td></td>
                   <td></td>
+                  <td></td>
+                  <td style="text-align: center;"></td> 
                  </tr>
 	}
             </tbody>
@@ -33,5 +38,36 @@
     	<li class="prevP"><a href="#instancesBox" onclick="prevPage()">Previous</a></li>
     	<li>@page</li>
     	<li class="nextP"><a href="#instancesBox" onclick="nextPage()">Next</a></li>
+    	<li ><button class="btn btn-success" id="linkCheckedEntries" style="float : right;">Bulk Link</button></li>
     </ul>
+    
+    
+   <script>   
+		$('#linkCheckedEntries').click(function() {
+			var linked = [];
+			var notLinked = [];
+			$("input:checked").each(function() {
+				var url = '/link/setlink';
+				var source_id = $(this).attr("data-source-id");
+				var target_id = $(this).attr("data-target-id");
+				 $.get(url,{local: source_id ,remote: target_id, relation : "owl:sameAs"}).done(function(){
+						linked.push(target_id);
+						console.log("linked "+source_id + target_id);
+				 })
+						 .fail(function(){
+						notLinked.push(target_id);
+						console.log("not linked"+source_id + target_id);
+				});
+				 
+						});
+			 
+			 
+
+		        
+		    });
+
+	  
+    </script>
+    
+    
     }

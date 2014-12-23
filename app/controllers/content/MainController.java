@@ -90,6 +90,7 @@ public class MainController extends Controller
 
     private static Set<String> getValues(Map<String, String[]> req, String key)
     {
+    	
         Set<String> values = new HashSet<>();
 
         if(req.containsKey(key)) {
@@ -100,7 +101,7 @@ public class MainController extends Controller
                 }
             }
         }
-        return values;
+          return values;
     }
 
 
@@ -152,6 +153,8 @@ public class MainController extends Controller
                 }
                 response.put("page", String.valueOf(page));
             }
+            System.out.println("--------------------------------------------------------------------------------------");
+            System.out.println("here: "+ Json.toJson(response));
             return ok(Json.toJson(response));
         } catch(QueryExceptionHTTP e) {
             return ok(displayError.render("Oh snap! An error occured!", 4041, StringUtils.getStackTrace(e)));

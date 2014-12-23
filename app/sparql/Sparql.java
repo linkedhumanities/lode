@@ -45,7 +45,7 @@ public class Sparql
                 System.out.println("XML Parsing Error. Skip Result.");
                 result = new LinkedList<>();
             } else {
-                System.out.println("SPARQL crash!");
+                System.out.println("SPARQL crash! \n"+ report);
                 throw e;
             }
         }
