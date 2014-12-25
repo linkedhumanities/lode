@@ -347,7 +347,7 @@
 													          	            clearInterval(intervalId);
 													          	            if(isEntityLinked)
 													          	            	first.next().html("<div>Linked!</div>");
-													          	            else if(data[0]!="No suggestions found!")
+													          	            else if(data[0]!="No suggestions found!" && data[0]!="Oh snap! An error occured!")
 													          	         		first.next().html("<input type='checkbox' class ='linkerCheckBox' data-source-id="+short_id+" data-target-id='"+data[0]+"' name ='checkBoxes' />");
 													          	           }
 													                }
