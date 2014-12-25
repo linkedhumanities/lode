@@ -291,10 +291,13 @@
 											*/ 
 										}
 
+										var isEntityLinked="";
+										isEntityLinked= true;
 										if(basicProperties[id]['same_as'].toString().indexOf('dbpedia') == -1) {
 											// go to linker if not linked
 											var sameAsImg = '<img style="height: 19px; width: 25px; margin-right:5px;" src="@routes.Assets.at("/images/DBpedia-gray-small.png")" alt=""/>';
 											sameAs='<a data-toggle="tooltip" title="Not Linked! Click to start the linker!" href="/link/dbpedia/'+ short_id +'">' +sameAsImg + '</a>'+sameAs;
+											isEntityLinked = false;
 										}
 										/*
 										if(basicProperties[id]['same_as'].toString().indexOf('inpho') == -1) {
@@ -342,9 +345,11 @@
 													            			var top_link_content = 	"<div id='"+data[0]+"' class='alert alert-success drag' style='cursor:pointer;'><span style='font-weight:bold'>"+data[0]+"</span></div>";
 													    					first.html(top_link_content);	
 													          	            clearInterval(intervalId);
-													          	          	first.next().html("<input type='checkbox' class ='linkerCheckBox' data-source-id="+short_id+" data-target-id='"+data[0]+"' name ='checkBoxes' />");
-													          	
-													            		}
+													          	            if(isEntityLinked)
+													          	            	first.next().html("<div>Linked!</div>");
+													          	            else if(data[0]!="No suggestions found!")
+													          	         		first.next().html("<input type='checkbox' class ='linkerCheckBox' data-source-id="+short_id+" data-target-id='"+data[0]+"' name ='checkBoxes' />");
+													          	           }
 													                }
 													        });
 													    },700);	
