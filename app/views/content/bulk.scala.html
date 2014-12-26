@@ -342,8 +342,7 @@
 													 
 													            		if(data.length==3) {
 													            	       	$('#linkerprogressbarBulk'+modified_short_id).html(data[1]+"%");
-													            	       	console.log('#linkerprogressbarBulk'+modified_short_id);
-														                   	document.getElementById('linkerprogressbarBulk'+modified_short_id).style.width=data[1]+'%';
+													                      	document.getElementById('linkerprogressbarBulk'+modified_short_id).style.width=data[1]+'%';
 													            		} else {
 													            			var top_link_content = 	"<div id='"+data[0]+"' class='alert alert-success drag' style='cursor:pointer;'><span style='font-weight:bold'>"+data[0]+"</span></div>";
 													    					first.html(top_link_content);	
