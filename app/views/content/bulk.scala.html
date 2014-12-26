@@ -325,7 +325,7 @@
 										// set top_link
 										first = first.next();
 										var url = '/linkSamePage/dbpedia/'+ short_id;
-										var modified_short_id = short_id.replace(":","_");
+										var modified_short_id = short_id.replace( /(:|\.|\[|\])/g, "_" );
 										 var progressBar = '<div class="progress progress-striped active"><div id="linkerprogressbarBulk'+modified_short_id+'" class="bar" style="width: 0%;">0%</div></div>';
 										 first.html(progressBar);
 										 $.get(url).success(
@@ -342,6 +342,7 @@
 													 
 													            		if(data.length==3) {
 													            	       	$('#linkerprogressbarBulk'+modified_short_id).html(data[1]+"%");
+													            	       	console.log('#linkerprogressbarBulk'+modified_short_id);
 														                   	document.getElementById('linkerprogressbarBulk'+modified_short_id).style.width=data[1]+'%';
 													            		} else {
 													            			var top_link_content = 	"<div id='"+data[0]+"' class='alert alert-success drag' style='cursor:pointer;'><span style='font-weight:bold'>"+data[0]+"</span></div>";
