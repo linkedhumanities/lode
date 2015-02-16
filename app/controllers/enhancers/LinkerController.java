@@ -106,6 +106,8 @@ public class LinkerController extends Controller
     }
     
 
+
+    
     public static Promise<Result> statusOnSamePage(String uuid)
     {
         try {
@@ -126,7 +128,10 @@ public class LinkerController extends Controller
                 	    if(response instanceof ResultMessage) {
                          ResultMessage rm = (ResultMessage) response;
                          if( rm.getSuggestions().size() > 0)
-                        	 return ok( rm.getSuggestions().get(0).getShortURI());
+                         { 
+                        	 String showMoreContent = StringEscapeUtils.escapeHtml4(ViewUtils.compareDescriptionDialog(rm.getDesc(),rm.getSuggestions().get(0)));
+                        	 return ok(rm.getSuggestions().get(0).getShortURI()+"!##!"+showMoreContent);
+                         }
                          else
                         	 return (Result) ok("No suggestions found!");
                      }
@@ -216,6 +221,7 @@ public class LinkerController extends Controller
         int pagenumber = Integer.valueOf(req.get("pagenumber")[0].trim());
 
         // build key
+
         String key = id + method;
 
         // load proposals

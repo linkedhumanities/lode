@@ -1,4 +1,7 @@
-@(title: String) @main(title + " - Content ") {
+
+@(title: String)
+@import views.html.helpers._
+@main(title + " - Content ") {
 <div class="page-header">
 	<h1>Explore</h1>
 </div>
@@ -29,6 +32,7 @@
 	</div>
 </div>
 
+@descriptionDialog()
 <script type="text/javascript">
 
 
@@ -344,13 +348,23 @@
 													            	       	$('#linkerprogressbarBulk'+modified_short_id).html(data[1]+"%");
 													                      	document.getElementById('linkerprogressbarBulk'+modified_short_id).style.width=data[1]+'%';
 													            		} else {
-													            			var top_link_content = 	"<div id='"+data[0]+"' class='alert alert-success drag' style='cursor:pointer;'><span style='font-weight:bold'>"+data[0]+"</span></div>";
-													    					first.html(top_link_content);	
-													          	            clearInterval(intervalId);
+													            			var showMoreData = data[0].split("!##!")[1];
+													            			var topData = data[0].split("!##!")[0];
+													            			var top_link_content = 	"<div><div id='"+topData+"' class='alert alert-success drag' style='cursor:pointer;'><span style='font-weight:bold'>"+topData+"</span>";
+													            			
+														        			
+													    					if(topData!="No suggestions found!" && topData!="Oh snap! An error occured!")
+													    					{	top_link_content = top_link_content+"<span style='float: right;'><button type=\"button\" class=\"btn btn-mini btn-info\" id=\"button-"+topData+"\" onclick=\"showMore('" + topData + "', this)\" data-toggle=\"button\" rel=\"popover\" data-html=\"true\"  data-content=\""+showMoreData+"\" data-original-title=\"Description\" data-placement=\"bottom\">Show more</button></span>";				   				
+													    						top_link_content = top_link_content + '</div><div id="content-'+topData+'" style="padding: 0 1.5em; display:none;"></div>';
+													    					}
+													        				
+													    					first.html(top_link_content+"</div>");
 													          	            if(isEntityLinked)
 													          	            	first.next().html("<div>Linked!</div>");
-													          	            else if(data[0]!="No suggestions found!" && data[0]!="Oh snap! An error occured!")
-													          	         		first.next().html("<input type='checkbox' class ='linkerCheckBox' data-source-id="+short_id+" data-target-id='"+data[0]+"' name ='checkBoxes' />");
+													          	            else if(topData!="No suggestions found!" && topData!="Oh snap! An error occured!")
+													          	         		first.next().html("<input type='checkbox' class ='linkerCheckBox' data-source-id="+short_id+" data-target-id='"+topData+"' name ='checkBoxes' />");
+													          	          
+													          	            clearInterval(intervalId);
 													          	           }
 													                }
 													        });
@@ -382,8 +396,27 @@
 	}
 	
 	
+	function showDescription (id1, desc1, id2, desc2) {
+  		$('#descModal').modal('show');
+  		$('#descLocalLabel').text(id1);   		
+  		$('#descLocal').text(desc1);
+  		$('#descRemoteLabel').text(id2);
+  		$('#descRemote').text(desc2);	
+  	}
 	
-	
+	function showMore (id, button) {	
+		if(document.getElementById('content-'+id).style.display!="none") {
+			$('#button-'+id.replace(/(:|\.)/g,'\\$1')).popover('destroy');
+			$('#content-'+id.replace(/(:|\.)/g,'\\$1')).fadeOut('slow', function() {
+        		// Animation complete.            		            		
+        	});
+		} else {
+			$('#button-'+id.replace(/(:|\.)/g,'\\$1')).popover('show');  		       	
+  			$('#content-'+id.replace(/(:|\.)/g,'\\$1')).fadeIn('slow', function() {
+        		// Animation complete. 
+  		 	});
+        } 
+	}
 	
 	function objectToToolTipList(object, namespace){
 		var keys = Object.keys(object);
