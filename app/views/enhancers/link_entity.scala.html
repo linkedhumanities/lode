@@ -2,6 +2,7 @@
 
 @import views.html.helpers._
 
+
 @main(desc.getShortURI() + " - Linking (" + method +")") {
 
 <div class="page-header">
@@ -109,17 +110,17 @@
 			    changeTooltipContent('#linker-valueB-long-instance', toHtmlLink(ui.draggable.attr('data-uri-long')));	
 			    			  			    
 			    // set default
-			    if($('#linkingstate').html().indexOf('display:none;') > 0) {
+			//    if($('#linkingstate').html().indexOf('display:none;') > 0) {
 			    	$('#owl\\:sameAs').attr('style','');			    	
 			   	 	changeTooltipContent('#linker-relation-uri-instance', toHtmlLinkShort('http://www.w3.org/2002/07/owl#sameAs','owl:sameAs'));			 
 			   	 	$('#linker-relation-text-instance').html('is the same as');
 			    	relation='owl:sameAs';			    
-			    } else {
+			/*    } else {
 			    	$('#owl\\:sameAs').attr('style','display: none;');			   	 	
 			   	 	changeTooltipContent('#linker-relation-uri-instance', toHtmlLinkShort('http://www.w3.org/2002/07/owl#differentFrom','owl:differentFrom'));	
 			   	 	$('#linker-relation-text-instance').html('is different from');
 			    	relation='owl:differentFrom';
-			    }
+			    } */
 			    
 			    $('#linkerDialog-instance').modal('show');
 				$(lodetooltip());
