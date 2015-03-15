@@ -81,13 +81,13 @@ public class LinkerController extends Controller
     
     public static Result linkOnSamePage(String source, String id) throws QueryExceptionHTTP
     {
-        if(ResUtils.toLongURI(id).contains("dbpedia")) {
+      /*  if(ResUtils.toLongURI(id).contains("dbpedia")) {
             List<String> sameAs = new ArrayList<>(Content.getSameAsID(id));
             if(sameAs.size() > 1) {
                 sameAs.remove(id);
                 id = sameAs.get(0);
             }
-        }
+        } */
         try {
             Map<String, String[]> req = request().queryString();
             int method = !req.containsKey("method") ? 0 : Integer.valueOf(req.get("method")[0]);
@@ -99,9 +99,9 @@ public class LinkerController extends Controller
            // return statusOnSamePage(myActor.path().name()).get(timeout);
             return ok(myActor.path().name());
         } catch(QueryExceptionHTTP e) {
-            return ok("Oh snap! An error occured!");
+            return ok("error : QueryExceptionHTTP");
         } catch(NullPointerException e) {
-            return ok("Oh snap! An error occured!");
+            return ok("error : NullPointerException");
         }
     }
     
@@ -138,7 +138,7 @@ public class LinkerController extends Controller
 
                      if(response instanceof ErrorMessage) {
                          ErrorMessage em = (ErrorMessage) response;
-                         return (Result) ok("Oh snap! An error occured!");
+                         return (Result) ok("ErrorMessage in Linker Controller");
                      }
               			return ok(response.toString());
               		

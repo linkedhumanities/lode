@@ -35,9 +35,9 @@
 @descriptionDialog()
 <script type="text/javascript">
 
-
-
 	$('#nav_content').addClass('active');
+	
+  
 	
 	function handleClick()
 	{
@@ -239,6 +239,7 @@
 								// console.log(data);
 								var basicProperties = data['data'];
 								$('#instances tr').each(function(i){
+									
 									if (i > 0){
 										var first = $(this).first().children().first();
 										// console.log(first);
@@ -361,9 +362,17 @@
 													    					first.html(top_link_content+"</div>");
 													          	            if(isEntityLinked)
 													          	            	first.next().html("<div>Linked!</div>");
-													          	            else if(topData!="No suggestions found!" && topData!="Oh snap! An error occured!")
-													          	         		first.next().html("<input type='checkbox' class ='linkerCheckBox' data-source-id="+short_id+" data-target-id='"+topData+"' name ='checkBoxes' />");
-													          	          
+													          	          //  else if(topData!="No suggestions found!" && topData!="Oh snap! An error occured!")
+													          	         	//	first.next().html("<input type='checkbox' class ='linkerCheckBox' data-source-id="+short_id+" data-target-id='"+topData+"' name ='checkBoxes' />");
+													          	          else
+													          	        	  {
+													          	        	/* var dropDownData = '<span class="dropdown">';
+													          	        	dropDownData = dropDownData + '<a id="linker-relation-uri-instance"'+topData+' class="dropdown-toggle" role="button" data-placement="bottom" data-toggle="dropdown" data-toggle2="tooltip" data-target="#" href="#" data-uri-short="" data-uri-long="" title="<b><a href=\'http://www.w3.org/2002/07/owl#sameAs\' style=\'color: #FFFFFF; text-decoration:none;\' target=\'_blank\'>owl:sameAs</a></b>">';
+													          	        	dropDownData = dropDownData + '<span id="linker-relation-text-instance"'+topData+'  class="text-success" style="padding-left:5px;">is same as</span>';
+													          	        	dropDownData = dropDownData + '<b class="caret"></b></a>@linkerDropdown("instance",settings.Settings.REL_INSTANCE)</span>';
+													        				first.next().html(dropDownData); */
+													        			
+													          	        	  }
 													          	            clearInterval(intervalId);
 													          	           }
 													                }

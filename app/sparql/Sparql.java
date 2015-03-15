@@ -31,6 +31,7 @@ public class Sparql
     public static List<QuerySolution> select(String request, Endpoint endpoint) throws QueryExceptionHTTP
     {
         QueryExecution qexec = Sparql.prepare(request, endpoint);
+       
         List<QuerySolution> result = null;
 
         ResultSet results = null;
@@ -83,8 +84,9 @@ public class Sparql
         request = convertPrefixToNamespace(request);
         request = StringEscapeUtils.unescapeHtml(request);
         request = request.replace("\n", "\\n");
-
+        
         Query sparqlQuery = QueryFactory.create(request);
+        
         QueryEngineHTTP qexec = QueryExecutionFactory.createServiceRequest(endpoint.getDestination(), sparqlQuery);
 
         if(Settings.DEFAULTGRAPH.containsKey(endpoint)) {

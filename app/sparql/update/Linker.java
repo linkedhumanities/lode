@@ -75,13 +75,17 @@ public class Linker
             observer.tell(new UpdateMessage("Step 2: ", (i * (50 / names.size())) + 6, "Searching Proposals (" + (i + 1) + "/" + (names.size()) + ")"), null);
 
             List<QuerySolution> candidates = null;
+              
             switch(method) {
+                
                 case 0:
                     candidates = (Sparql.select("SELECT ?i ?d WHERE { ?i <http://dbpedia.org/ontology/abstract> ?d . ?d <bif:contains> \"'" + searchterm
                             + "'\" . FILTER (lang(?d)='en') . MINUS{?i rdf:type <http://www.w3.org/2004/02/skos/core#Concept>} . MINUS{?i rdf:type <http://www.w3.org/2002/07/owl#DatatypeProperty>} . }", Endpoint.DBPEDIA));
                     candidates.addAll(Sparql.select("SELECT ?i ?d WHERE { ?i <http://www.w3.org/2000/01/rdf-schema#label> ?d . ?d <bif:contains> \"'" + searchterm
                             + "'\" . FILTER (lang(?d)='en') . MINUS{?i rdf:type <http://www.w3.org/2004/02/skos/core#Concept>} . MINUS{?i rdf:type <http://www.w3.org/2002/07/owl#DatatypeProperty>} . }", Endpoint.DBPEDIA));
                     for(QuerySolution candidate : candidates) {
+                    	
+                    	try{
                         if(candidate.getResource("?i").toString().contains("http://dbpedia.org/resource")) {
                             EntityContainer proposal = new EntityContainer(candidate.getResource("?i"));
 
@@ -96,8 +100,13 @@ public class Linker
                             }
                             proposals.put(proposal, weight);
                         }
+                    	}
+                    	catch(Exception e)
+                    	{
+                    		System.out.println("Exception in Linker.java");
+                    	}
                     }
-                break;
+                  break;
                 case 1:
                     // use only subsets if the results is empty for a search term
                     if(!localInstance.getReadableNames().contains(name))
@@ -146,6 +155,7 @@ public class Linker
                     connect.close();
                 break;
                 default:
+                 	 System.out.println("in case default");
                     candidates = new LinkedList<>();
                 break;
             }

@@ -1,4 +1,5 @@
 @(entities: List[models.entity.EntityContainer], page : Integer)
+@import views.html.helpers._
 @if(entities.isEmpty()) {
 	<div class="alert alert-info">
 		No Result.
@@ -29,7 +30,7 @@
                   <td></td>
                   <td></td>
                   <td></td>
-                  <td style="text-align: center;"></td> 
+                  <td></td> 
                  </tr>
 	}
             </tbody>
@@ -68,8 +69,8 @@
 
 		        
 		    });
+		
 
-	  
     </script>
     
     

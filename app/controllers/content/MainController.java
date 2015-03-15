@@ -153,8 +153,6 @@ public class MainController extends Controller
                 }
                 response.put("page", String.valueOf(page));
             }
-            System.out.println("--------------------------------------------------------------------------------------");
-            System.out.println("here: "+ Json.toJson(response));
             return ok(Json.toJson(response));
         } catch(QueryExceptionHTTP e) {
             return ok(displayError.render("Oh snap! An error occured!", 4041, StringUtils.getStackTrace(e)));

@@ -9,17 +9,13 @@
 	<div style="position:fixed; left:0; top:120px;width:100%;">
 		<div style="border-width:1px; width:500px; margin: 0 auto; padding:15px; border-color:green; border-style:dotted; text-align: center; font-weight:bold; font-size:15px;">
 			<a id="linker-valueA-long-@title" data-toggle="tooltip" data-placement="bottom" title=""><span id="linker-valueA-short-@title" class="text-info"></span></a>
-			
 			<span class="dropdown">
 				<a id="linker-relation-uri-@title" class="dropdown-toggle" role="button" data-placement="bottom" data-toggle="dropdown" data-toggle2="tooltip" data-target="#" href="#" data-uri-short="" data-uri-long="" title="">
 					<span id="linker-relation-text-@title" class="text-success" style="padding-left:5px;"></span>
 					<b class="caret"></b>
 				</a>
-				<ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
-					@for(relation <- relations) { 
-						<li><a id="@relation.toShortURI()" data-uri-short="@relation.toShortURI()" data-uri-long="@relation.getValue()" data-type="@title" onclick='setLinkerRelation(this)'>@relation.getDescription()</a></li>
-					}
-				</ul>
+				@linkerDropdown(title,settings.Settings.REL_INSTANCE)
+				
 			</span>
 			
 			<a id="linker-valueB-long-@title" data-toggle="tooltip" data-placement="bottom" title=""><span id="linker-valueB-short-@title" class="text-info"></span></a>
