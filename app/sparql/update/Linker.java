@@ -36,303 +36,361 @@ import com.hp.hpl.jena.sparql.engine.http.QueryExceptionHTTP;
 
 public class Linker
 {
-    private static Map<String, String>                      instanceURIs = new HashMap<>();
-    private static Map<String, Map<EntityContainer, Float>> cache        = new HashMap<>();
-    private static Set<String>                              blacklist    = new HashSet<>();
+	private static Map<String, String>                      instanceURIs = new HashMap<>();
+	private static Map<String, Map<EntityContainer, Float>> cache        = new HashMap<>();
+	private static Set<String>                              blacklist    = new HashSet<>();
 
 
-    public static List<EntityContainer> getProposals(String id, Endpoint source, int method, ActorRef observer) throws QueryExceptionHTTP, SQLException, ClassNotFoundException
-    {
-        // key
-        String key = id + "" + method;
+	public static List<EntityContainer> getProposals(String id, Endpoint source, int method, ActorRef observer) throws QueryExceptionHTTP, SQLException, ClassNotFoundException
+	{
+		// key
+		String key = id + "" + method;
 
-        // cache
-        if(!cache.containsKey(key)) {
-            cache.put(key, new HashMap<EntityContainer, Float>());
-        }
-        Map<EntityContainer, Float> proposals = cache.get(key);
+		// cache
+		if(!cache.containsKey(key)) {
+			cache.put(key, new HashMap<EntityContainer, Float>());
+		}
+		Map<EntityContainer, Float> proposals = cache.get(key);
 
-        // loads similar instances (dbpedia) and calculates the weight (levenshtein)
-        EntityContainer localInstance = Content.getEntityContainerbyID(id);
-        if(localInstance == null) { return null; }
+		// loads similar instances (dbpedia) and calculates the weight (levenshtein)
+		EntityContainer localInstance = Content.getEntityContainerbyID(id);
+		if(localInstance == null) { return null; }
 
-        // readable names
-        Set<String> names = localInstance.getReadableNames();
-        names = StringUtils.generateNames(names);
+		// readable names
+		Set<String> readableNames = localInstance.getReadableNames();
+		Set<String>  names = StringUtils.generateNames(readableNames);
+		// progress bar
+		observer.tell(new UpdateMessage("Step 1: ", 5, "Initialization"), null);
 
-        // progress bar
-        observer.tell(new UpdateMessage("Step 1: ", 5, "Initialization"), null);
+		// string similarity
+		Levenshtein ls = new Levenshtein();
 
-        // string similarity
-        Levenshtein ls = new Levenshtein();
+		// search proposals
+		List<String> searchterms = new LinkedList<>(names);
+		for(int i = 0; i < names.size(); i++) {
+			String name = searchterms.get(i).trim();
 
-        // search proposals
-        List<String> searchterms = new LinkedList<>(names);
-        for(int i = 0; i < names.size(); i++) {
-            String name = searchterms.get(i).trim();
-            String searchterm = searchterms.get(i).trim().replace("'", "\u2019");
+			String searchterm = searchterms.get(i).trim().replace("'", "\u2019");
 
-            observer.tell(new UpdateMessage("Step 2: ", (i * (50 / names.size())) + 6, "Searching Proposals (" + (i + 1) + "/" + (names.size()) + ")"), null);
+			observer.tell(new UpdateMessage("Step 2: ", (i * (50 / names.size())) + 6, "Searching Proposals (" + (i + 1) + "/" + (names.size()) + ")"), null);
 
-            List<QuerySolution> candidates = null;
-              
-            switch(method) {
-                
-                case 0:
-                    candidates = (Sparql.select("SELECT ?i ?d WHERE { ?i <http://dbpedia.org/ontology/abstract> ?d . ?d <bif:contains> \"'" + searchterm
-                            + "'\" . FILTER (lang(?d)='en') . MINUS{?i rdf:type <http://www.w3.org/2004/02/skos/core#Concept>} . MINUS{?i rdf:type <http://www.w3.org/2002/07/owl#DatatypeProperty>} . }", Endpoint.DBPEDIA));
-                    candidates.addAll(Sparql.select("SELECT ?i ?d WHERE { ?i <http://www.w3.org/2000/01/rdf-schema#label> ?d . ?d <bif:contains> \"'" + searchterm
-                            + "'\" . FILTER (lang(?d)='en') . MINUS{?i rdf:type <http://www.w3.org/2004/02/skos/core#Concept>} . MINUS{?i rdf:type <http://www.w3.org/2002/07/owl#DatatypeProperty>} . }", Endpoint.DBPEDIA));
-                    for(QuerySolution candidate : candidates) {
-                    	
-                    	try{
-                        if(candidate.getResource("?i").toString().contains("http://dbpedia.org/resource")) {
-                            EntityContainer proposal = new EntityContainer(candidate.getResource("?i"));
+			List<QuerySolution> candidates = null;
 
-                            // weighting
-                            Float weight = ls.getSimilarity(name.toLowerCase(), ResUtils.getLocaleName(proposal.getURI().getValue().replace("_", " ")).toLowerCase());
-                            if(!localInstance.getReadableNames().contains(name)) {
+			switch(method) {
+
+			case 0:
+
+				candidates = (Sparql.select("SELECT ?i ?d WHERE { ?i <http://dbpedia.org/ontology/abstract> ?d . ?d <bif:contains> \"'" + searchterm
+						+ "'\" . FILTER (lang(?d)='en') . MINUS{?i rdf:type <http://www.w3.org/2004/02/skos/core#Concept>} . MINUS{?i rdf:type <http://www.w3.org/2002/07/owl#DatatypeProperty>} . }", Endpoint.DBPEDIA));
+
+				candidates.addAll(Sparql.select("SELECT ?i ?d WHERE { ?i <http://www.w3.org/2000/01/rdf-schema#label> ?d . ?d <bif:contains> \"'" + searchterm
+						+ "'\" . FILTER (lang(?d)='en') . MINUS{?i rdf:type <http://www.w3.org/2004/02/skos/core#Concept>} . MINUS{?i rdf:type <http://www.w3.org/2002/07/owl#DatatypeProperty>} . }", Endpoint.DBPEDIA));
+				for(QuerySolution candidate : candidates) {
+
+					try{
+						if(candidate.getResource("?i").toString().contains("http://dbpedia.org/resource")) {
+							EntityContainer proposal = new EntityContainer(candidate.getResource("?i"));
+
+							// ??? weighting between proposal and searchterm ( why name? & not searchterm? )
+							Float weight = ls.getSimilarity(name.toLowerCase(), ResUtils.getLocaleName(proposal.getURI().getValue().replace("_", " ")).toLowerCase());
+
+							//----------------------------------- additional weight factor added.. not yet finalized-----------------------------
+							// readableNames --> original names set
+							for(String tempName : readableNames)
+							{
+								Set<String> tempSet = new TreeSet<String>();
+								tempSet.add(tempName);
+								
+								// generate combos of all names in set
+								for(String nameCombo : StringUtils.generateNames(tempSet))                            	
+								{
+									//if nameCombo is equal to current search term
+									if(name.toLowerCase().equals(nameCombo.toLowerCase()))
+									{
+										//System.out.println("-------------------nameCombo!!"+nameCombo);
+										nameCombo = nameCombo.replaceAll("[^a-zA-Z ]", "").toLowerCase();
+										//System.out.println("--------after replace!!"+nameCombo);
+										weight = weight * ls.getSimilarity(tempName.toLowerCase(),nameCombo);
+										}
+								}
+							}
+							 
+					
+
+
+							//---------------------------------------------------------------------------------------------------------
+
+
+
+
+							//----------------------------------- originally present ------------------------------------------------------
+
+							/*   if(!localInstance.getReadableNames().contains(name)) {
+                         //   	System.out.println("runs here  : "+name+" ..... localInstance.getReadableNames() : "+localInstance.getReadableNames() +"size : "+localInstance.getReadableNames().size());
+                                weight = weight * (7.0f / 8.0f);
+                            }    */
+							//---------------------------------------------------------------------------------------------------------
+
+
+
+
+							//----------------------------------- tried modifying originally present above code-----------------------------                                                       
+							//----------------------------------- modified the set to make all its strings lower case. This would prevent the execution of many cases in below if condition
+							//  ---------------------------------did this to test if it gave better results-----------------------------
+
+							/*       Set<String> tempLowerCaseNames = new HashSet<>();
+                            for(String str : localInstance.getReadableNames())
+                            	tempLowerCaseNames.add(str.toLowerCase());
+
+                            if(!tempLowerCaseNames.contains(name)) {
+                            	System.out.println("runs here  : "+name+" ..... tempLowerCaseNames : "+tempLowerCaseNames +"size : "+tempLowerCaseNames.size());
                                 weight = weight * (7.0f / 8.0f);
                             }
+							 */
+							//---------------------------------------------------------------------------------------------------------
 
-                            if(proposals.containsKey(proposal) && proposals.get(proposal) > weight) {
-                                continue;
-                            }
-                            proposals.put(proposal, weight);
-                        }
-                    	}
-                    	catch(Exception e)
-                    	{
-                    		System.out.println("Exception in Linker.java");
-                    	}
-                    }
-                  break;
-                case 1:
-                    // use only subsets if the results is empty for a search term
-                    if(!localInstance.getReadableNames().contains(name))
-                        continue;
+							if(proposals.containsKey(proposal) && proposals.get(proposal) > weight) {
+								continue;
+							}
 
-                    Class.forName("com.mysql.jdbc.Driver");
+							
+							proposals.put(proposal, weight);
+						}
+						
+					}
+					catch(Exception e)
+					{
+						System.out.println("Exception in Linker.java");
+					}
+				}
+				break;
+			case 1:
 
-                    String arnab_database = "wikiStat";
-                    String arnab_table = "wikiPrep";
-                    Connection connect = DriverManager.getConnection("jdbc:mysql://" + Settings.MySQL_SERVER + "/" + arnab_database + "?user=" + Settings.MySQL_USER + "&password=" + Settings.MySQL_PASSWORD + "&useUnicode=true&characterEncoding=utf-8");
+				// use only subsets if the results is empty for a search term
+				if(!localInstance.getReadableNames().contains(name))
+					continue;
 
-                    List<String> searchTerms = new ArrayList<>();
-                    searchTerms.add(name);
+				Class.forName("com.mysql.jdbc.Driver");
 
-                    boolean subString = false;
+				String arnab_database = "wikiStat";
+				String arnab_table = "wikiPrep";
+				Connection connect = DriverManager.getConnection("jdbc:mysql://" + Settings.MySQL_SERVER + "/" + arnab_database + "?user=" + Settings.MySQL_USER + "&password=" + Settings.MySQL_PASSWORD + "&useUnicode=true&characterEncoding=utf-8");
 
-                    while(!searchTerms.isEmpty()) {
-                        PreparedStatement stmt2 = connect.prepareStatement("SELECT * FROM " + arnab_table + " WHERE sf = ? OR uri = ? ORDER BY count desc LIMIT 20");
-                        stmt2.setString(1, searchTerms.get(0));
-                        stmt2.setString(2, searchTerms.get(0));
+				List<String> searchTerms = new ArrayList<>();
+				searchTerms.add(name);
 
-                        searchTerms.remove(0);
+				boolean subString = false;
 
-                        System.out.println("SQL-Query: " + name);
+				while(!searchTerms.isEmpty()) {
+					PreparedStatement stmt2 = connect.prepareStatement("SELECT * FROM " + arnab_table + " WHERE sf = ? OR uri = ? ORDER BY count desc LIMIT 20");
+					stmt2.setString(1, searchTerms.get(0));
+					stmt2.setString(2, searchTerms.get(0));
 
-                        ResultSet rs = stmt2.executeQuery();
-                        boolean empty = true;
+					searchTerms.remove(0);
 
-                        while(rs.next()) {
-                            empty = false;
-                            EntityContainer proposal = new EntityContainer(new Value("http://dbpedia.org/resource/" + rs.getString("uri").replace(" ", "_")));
-                            if(!proposals.containsKey(proposal)) {
-                                proposals.put(proposal, (float) rs.getInt("count"));
-                            } else {
-                                proposals.put(proposal, proposals.get(proposal) + (float) rs.getInt("count"));
-                            }
+					System.out.println("SQL-Query: " + name);
 
-                            System.out.println("\t" + rs.getString("uri") + " " + rs.getInt("count") + " / " + proposals.get(proposal));
-                        }
+					ResultSet rs = stmt2.executeQuery();
+					boolean empty = true;
 
-                        if(!subString && empty) {
-                            subString = true;
-                            searchTerms.addAll(0, StringUtils.generateNames(names));
-                        }
-                    }
-                    connect.close();
-                break;
-                default:
-                 	 System.out.println("in case default");
-                    candidates = new LinkedList<>();
-                break;
-            }
-        }
+					while(rs.next()) {
+						empty = false;
+						EntityContainer proposal = new EntityContainer(new Value("http://dbpedia.org/resource/" + rs.getString("uri").replace(" ", "_")));
+						if(!proposals.containsKey(proposal)) {
+							proposals.put(proposal, (float) rs.getInt("count"));
+						} else {
+							proposals.put(proposal, proposals.get(proposal) + (float) rs.getInt("count"));
+						}
 
-        // tell
-        observer.tell(new UpdateMessage("Step 2: ", 55, "Searching Complete"), null);
+						System.out.println("\t" + rs.getString("uri") + " " + rs.getInt("count") + " / " + proposals.get(proposal));
+					}
 
-        // load page one
-        return show(key, source, observer, 1);
-    }
+					if(!subString && empty) {
+						subString = true;
+						searchTerms.addAll(0, StringUtils.generateNames(names));
+					}
+				}
+				connect.close();
+				break;
+			default:
+				System.out.println("in case default");
+				candidates = new LinkedList<>();
+				break;
+			}
+		}
 
+		// tell
+		observer.tell(new UpdateMessage("Step 2: ", 55, "Searching Complete"), null);
 
-    public static List<EntityContainer> show(String key, Endpoint source, ActorRef observer, int pagenumber)
-    {
-        // cache
-        instanceURIs = new HashMap<String, String>();
-        Map<EntityContainer, Float> proposals = cache.get(key);
-
-        // stuff
-        List<EntityContainer> result = new LinkedList<>();
-        EntityContainer localInstance = Content.getEntityContainerbyID(key.substring(0, key.length() - 1));
-
-        if(localInstance == null) { return null; }
-
-        // determine number of entries for the first page
-        int maxCv = Settings.L_INSTANCES;
-        if(proposals.size() < Settings.L_INSTANCES) {
-            maxCv = proposals.size();
-        }
-
-        // build proposal entity container
-        List<EntityContainer> canditates = sortProposals(key);
-        for(int i = (pagenumber - 1) * Settings.L_INSTANCES; i < canditates.size(); i++) {
-            EntityContainer proposal = canditates.get(i);
-
-            // handle redirect URLs
-            EntityContainer tmp = new EntityContainer(proposal.getRedirectURI());
-            if(!proposal.getURI().equals(tmp.getURI())) {
-                if(proposals.containsKey(tmp) && proposals.get(proposal) <= proposals.get(tmp)) {
-                    proposals.remove(proposal);
-                    continue;
-                } else if((proposals.containsKey(tmp) && proposals.get(proposal) > proposals.get(tmp) || !proposals.containsKey(tmp))) {
-                    proposals.put(tmp, proposals.get(proposal));
-                    proposals.remove(proposal);
-                    proposal = tmp;
-                }
-            }
-
-            // validate proposal
-            int code = validate(key, localInstance, proposal, source);
-            if(code < 1) {
-                canditates = sortProposals(key);
-                i += code;
-                continue;
-            }
-
-            // progress bar
-            if(observer != null) {
-                observer.tell(new UpdateMessage("Step 3: ", (result.size() * (45 / maxCv)) + 56, "Loading Properties (" + (result.size() + 1) + "/" + (maxCv) + ")"), null);
-            }
-
-            // load proposal
-            load(proposal);
-
-            // skip if no proposals are available
-            if(proposal.getProperties().size() == 0) {
-                // continue;
-            }
-
-            // store result
-            result.add(proposal);
-
-            // break if we have x similar results
-            if(result.size() == Settings.L_INSTANCES) {
-                break;
-            }
-        }
-
-        return result;
-    }
+		// load page one
+		return show(key, source, observer, 1);
+	}
 
 
-    public static void setLink(Value local, Value remote, Value relation)
-    {
-        // update database
-        String command = "INSERT DATA { " + local.toSparql() + " " + relation.toSparql() + " " + remote.toSparql() + " }";
-        Sparql.update(command, Endpoint.LOCAL);
+	public static List<EntityContainer> show(String key, Endpoint source, ActorRef observer, int pagenumber)
+	{
+		// cache
+		instanceURIs = new HashMap<String, String>();
+		Map<EntityContainer, Float> proposals = cache.get(key);
 
-        // update local variable
-        Content.show(ResUtils.createShortURI(local.getValue()));
-    }
+		// stuff
+		List<EntityContainer> result = new LinkedList<>();
+		EntityContainer localInstance = Content.getEntityContainerbyID(key.substring(0, key.length() - 1));
 
+		if(localInstance == null) { return null; }
 
-    public static boolean hasRelation(Value uri1, Value uri2) throws QueryExceptionHTTP
-    {
-        // search relation
-        List<QuerySolution> result = Sparql.select("SELECT * { " + uri2.toSparql() + " <" + "owl:sameAs" + "> " + uri1.toSparql() + " }", Endpoint.LOCAL);
-        if(result.size() > 0) { return true; }
+		// determine number of entries for the first page
+		int maxCv = Settings.L_INSTANCES;
+		if(proposals.size() < Settings.L_INSTANCES) {
+			maxCv = proposals.size();
+		}
 
-        return false;
-    }
+		// build proposal entity container
+		List<EntityContainer> canditates = sortProposals(key);
+		for(int i = (pagenumber - 1) * Settings.L_INSTANCES; i < canditates.size(); i++) {
+			EntityContainer proposal = canditates.get(i);
 
+			// handle redirect URLs
+			EntityContainer tmp = new EntityContainer(proposal.getRedirectURI());
+			if(!proposal.getURI().equals(tmp.getURI())) {
+				if(proposals.containsKey(tmp) && proposals.get(proposal) <= proposals.get(tmp)) {
+					proposals.remove(proposal);
+					continue;
+				} else if((proposals.containsKey(tmp) && proposals.get(proposal) > proposals.get(tmp) || !proposals.containsKey(tmp))) {
+					proposals.put(tmp, proposals.get(proposal));
+					proposals.remove(proposal);
+					proposal = tmp;
+				}
+			}
 
-    private static int validate(String key, EntityContainer localInstance, EntityContainer proposal, Endpoint source)
-    {
-        // cache
-        Map<EntityContainer, Float> proposals = cache.get(key);
+			// validate proposal
+			int code = validate(key, localInstance, proposal, source);
+			if(code < 1) {
+				canditates = sortProposals(key);
+				i += code;
+				continue;
+			}
 
-        // duplicates
-        if(instanceURIs.containsKey(ResUtils.createShortURI(proposal.getURI().getValue())) || proposal.equals(localInstance) || hasRelation(proposal.getURI(), localInstance.getURI())) { return 0; }
+			// progress bar
+			if(observer != null) {
+				observer.tell(new UpdateMessage("Step 3: ", (result.size() * (45 / maxCv)) + 56, "Loading Properties (" + (result.size() + 1) + "/" + (maxCv) + ")"), null);
+			}
 
-        // disambiguates
-        if(!blacklist.contains(proposal.getURI().getValue())) {
-            List<Value> disambiguates = ResUtils.getDisambiguates(proposal.getURI());
-            if(disambiguates.size() > 0) {
-                for(Value disambiguate : disambiguates) {
-                    proposals.put(new EntityContainer(disambiguate), proposals.get(proposal));
-                }
-                blacklist.add(proposal.getURI().getValue());
-                proposals.remove(proposal);
-                return -1;
-            }
-        }
+			// load proposal
+			load(proposal);
 
-        return 1;
-    }
+			// skip if no proposals are available
+			if(proposal.getProperties().size() == 0) {
+				// continue;
+			}
 
+			// store result
+			result.add(proposal);
 
-    private static void load(EntityContainer proposal)
-    {
-        // grep each property including all values for the current instance
-        NavigableMap<String, PropertyContainer> tmpProperties = ResUtils.storeProperties(proposal.getURI(), Settings.LANG, null);
+			// break if we have x similar results
+			if(result.size() == Settings.L_INSTANCES) {
+				break;
+			}
+		}
 
-        // grep top properties
-        NavigableMap<String, PropertyContainer> topProperties = ResUtils.getTopProperties(new TreeSet<>(tmpProperties.values()), Settings.L_PROPERTIES, Settings.L_VALUES);
-
-        // only submap of top-properties
-        if(topProperties.size() > Settings.L_PROPERTIES) {
-            List<String> keys = (new ArrayList<String>(topProperties.keySet()));
-            topProperties = topProperties.subMap(keys.get(0), true, keys.get(Settings.L_PROPERTIES), false);
-        }
-
-        // load description
-        String description = ResUtils.getDescription(new TreeSet<>(tmpProperties.values()));
-
-        // build container
-        proposal.setDescription(description);
-        proposal.setProperties(topProperties);
-
-        // store container
-        instanceURIs.put(proposal.getShortURI(), proposal.getURI().getValue());
-    }
+		return result;
+	}
 
 
-    private static List<EntityContainer> sortProposals(String key)
-    {
-        // cache
-        Map<EntityContainer, Float> proposals = cache.get(key);
+	public static void setLink(Value local, Value remote, Value relation)
+	{
+		// update database
+		String command = "INSERT DATA { " + local.toSparql() + " " + relation.toSparql() + " " + remote.toSparql() + " }";
+		Sparql.update(command, Endpoint.LOCAL);
 
-        List<EntityContainer> result = new LinkedList<>();
+		// update local variable
+		Content.show(ResUtils.createShortURI(local.getValue()));
+	}
 
-        // proposals sorted by weight descending
-        proposals = MapUtils.sortByValue(proposals, true);
 
-        // proposals sorted by lexical grouped by weights
-        List<EntityContainer> canditates = new LinkedList<>(proposals.keySet());
-        NavigableMap<String, EntityContainer> tmp = new TreeMap<>();
-        for(int i = 0; i < canditates.size(); i++) {
-            tmp.put(canditates.get(i).getURI().getValue().toLowerCase(), canditates.get(i));
-            if((i == canditates.size() - 1) || !((proposals.get(canditates.get(i)) - (proposals.get(canditates.get(i + 1)))) < 5.96e-08)) {
-                // proposals sorted by lexical descending
-                result.addAll(tmp.values());
-                tmp = new TreeMap<>();
-            }
-        }
+	public static boolean hasRelation(Value uri1, Value uri2) throws QueryExceptionHTTP
+	{
+		// search relation
+		List<QuerySolution> result = Sparql.select("SELECT * { " + uri2.toSparql() + " <" + "owl:sameAs" + "> " + uri1.toSparql() + " }", Endpoint.LOCAL);
+		if(result.size() > 0) { return true; }
 
-        return result;
-    }
+		return false;
+	}
+
+
+	private static int validate(String key, EntityContainer localInstance, EntityContainer proposal, Endpoint source)
+	{
+		// cache
+		Map<EntityContainer, Float> proposals = cache.get(key);
+
+		// duplicates
+		if(instanceURIs.containsKey(ResUtils.createShortURI(proposal.getURI().getValue())) || proposal.equals(localInstance) || hasRelation(proposal.getURI(), localInstance.getURI())) { return 0; }
+
+		// disambiguates
+		if(!blacklist.contains(proposal.getURI().getValue())) {
+			List<Value> disambiguates = ResUtils.getDisambiguates(proposal.getURI());
+			if(disambiguates.size() > 0) {
+				for(Value disambiguate : disambiguates) {
+					proposals.put(new EntityContainer(disambiguate), proposals.get(proposal));
+				}
+				blacklist.add(proposal.getURI().getValue());
+				proposals.remove(proposal);
+				return -1;
+			}
+		}
+
+		return 1;
+	}
+
+
+	private static void load(EntityContainer proposal)
+	{
+		// grep each property including all values for the current instance
+		NavigableMap<String, PropertyContainer> tmpProperties = ResUtils.storeProperties(proposal.getURI(), Settings.LANG, null);
+
+		// grep top properties
+		NavigableMap<String, PropertyContainer> topProperties = ResUtils.getTopProperties(new TreeSet<>(tmpProperties.values()), Settings.L_PROPERTIES, Settings.L_VALUES);
+
+		// only submap of top-properties
+		if(topProperties.size() > Settings.L_PROPERTIES) {
+			List<String> keys = (new ArrayList<String>(topProperties.keySet()));
+			topProperties = topProperties.subMap(keys.get(0), true, keys.get(Settings.L_PROPERTIES), false);
+		}
+
+		// load description
+		String description = ResUtils.getDescription(new TreeSet<>(tmpProperties.values()));
+
+		// build container
+		proposal.setDescription(description);
+		proposal.setProperties(topProperties);
+
+		// store container
+		instanceURIs.put(proposal.getShortURI(), proposal.getURI().getValue());
+	}
+
+
+	private static List<EntityContainer> sortProposals(String key)
+	{
+		// cache
+		Map<EntityContainer, Float> proposals = cache.get(key);
+
+		List<EntityContainer> result = new LinkedList<>();
+
+		// proposals sorted by weight descending
+		proposals = MapUtils.sortByValue(proposals, true);
+
+		// proposals sorted by lexical grouped by weights
+		List<EntityContainer> canditates = new LinkedList<>(proposals.keySet());
+		NavigableMap<String, EntityContainer> tmp = new TreeMap<>();
+		for(int i = 0; i < canditates.size(); i++) {
+			tmp.put(canditates.get(i).getURI().getValue().toLowerCase(), canditates.get(i));
+			if((i == canditates.size() - 1) || !((proposals.get(canditates.get(i)) - (proposals.get(canditates.get(i + 1)))) < 5.96e-08)) {
+				// proposals sorted by lexical descending
+				result.addAll(tmp.values());
+				tmp = new TreeMap<>();
+			}
+		}
+
+		return result;
+	}
 }

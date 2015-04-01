@@ -11,7 +11,8 @@ import utils.StringUtils;
 public class Endpoint
 {
     public static Endpoint LOCAL   = new Endpoint(Settings.SERVER + "/openrdf-sesame/repositories/" + Settings.REPO);
-    public static Endpoint DBPEDIA = new Endpoint("http://dbpedia.org/sparql");
+   // public static Endpoint DBPEDIA = new Endpoint("http://dbpedia.org/sparql");
+    public static Endpoint DBPEDIA = new Endpoint("http://inpho-dataserve.cogs.indiana.edu:8890/sparql");
 
     private URL            endpoint;
 

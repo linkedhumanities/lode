@@ -1,0 +1,1 @@
+@(title:String, relations : List[models.entity.Value])<ul class="dropdown-menu" role="menu" aria-labelledby="dLabel"> @for(relation <- relations) {<li><a id="@relation.toShortURI()" data-uri-short="@relation.toShortURI()" data-uri-long="@relation.getValue()" data-type="@title" onclick="setLinkerRelation(this)">@relation.getDescription()</a></li>}</ul>
