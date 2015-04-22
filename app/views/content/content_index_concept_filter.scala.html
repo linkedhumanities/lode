@@ -5,7 +5,8 @@
 		</div>
 } else { 		
 	@for(concept <- concepts) {
-	<span data-value="@concept.getLeft()" data-count="@concept.getRight()" class="filter badge badge-info">@utils.ResUtils.createShortURI(concept.getLeft().toString()) (@concept.getRight())</span> 
+	<span data-value="@concept.getLeft()" data-count="@concept.getRight()" class="filter badge badge-info">@utils.ResUtils.createShortURI(concept.getLeft().toString()) (@concept.getRight())</span>
+
 	}
 	
 	<script type="text/javascript">

@@ -130,7 +130,7 @@ public class LinkerController extends Controller
                          if( rm.getSuggestions().size() > 0)
                          { 
                         	 String showMoreContent = StringEscapeUtils.escapeHtml4(ViewUtils.compareDescriptionDialog(rm.getDesc(),rm.getSuggestions().get(0)));
-                        	 return ok(rm.getSuggestions().get(0).getShortURI()+"!##!"+showMoreContent);
+                        	 return ok(rm.getSuggestions().get(0).getShortURI()+"!##!"+showMoreContent+"!##!"+rm.getDesc().getProperties().get(0).getValues().values());
                          }
                          else
                         	 return (Result) ok("No suggestions found!");
@@ -188,6 +188,8 @@ public class LinkerController extends Controller
         }
     }
 
+    
+    
     public static Result setLink()
     {
         // get data

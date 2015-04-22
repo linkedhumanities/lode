@@ -11,7 +11,7 @@
 		<input class="span4" id="searchInput" placeholder="search..." value=""
 			name="search" size="16" type="text" autocomplete="off">
 		<button id="nonlinked" onclick="changeNonlinkedFilter()" type="button"
-			class="btn" data-toggle="button">only non-linked</button>
+			class="btn active" data-toggle="button">show all</button>
 		<button class="btn" onclick="startSearch()" type="submit">Go!</button>
 	</div>
 </form>
@@ -37,6 +37,7 @@
 
 	$('#nav_content').addClass('active');
 	
+	var toggleCount = 0; // used to keep track of non-linked filter button state
   
 	
 	function handleClick()
@@ -49,7 +50,7 @@
 	var lastQuery = $("#searchInput").val();
 	var activeFilter = new Array();
 	var activePage = 1;
-	var nonlinked = false;
+	var nonlinked = true;
 
 	$.get("/content/conceptTypeAhead", function (data){
 			$('#searchInput').typeahead({source: data});							
@@ -60,16 +61,22 @@
 		$("#searchInput").val($.cookie('search_query'));
 		lastQuery = $("#searchInput").val();
 	}
-	
+	else
+	{
+		activeFilter = $.cookie('search_filter',"http://resources.isisbibliography.org/authority");
+	}
+
 	if (typeof $.cookie('search_page') !== 'undefined'){		
 		activePage = parseInt($.cookie('search_page'));		
 	}
 	
-	if (typeof $.cookie('search_filter') !== 'undefined'){		
+	if (typeof $.cookie('search_filter') !== 'undefined'){	
+		console.log('here!- '+$.cookie('search_filter'));
 		activeFilter = $.cookie('search_filter').split(",");
+		console.log('activeFilter!- '+activeFilter);
 		updateStatus();
 	}	
-
+	
 	if (typeof $.cookie('nonlinked_filter') !== 'undefined'){		
 		nonlinked = ($.cookie('nonlinked_filter') === 'true');
 		if (nonlinked){
@@ -104,9 +111,12 @@
 	}
 	
 	function changeNonlinkedFilter(){
+		toggleCount = toggleCount +1;
 		if (!$('#nonlinked').hasClass('active')){
+			$('#nonlinked').html('show all');
 			nonlinked = true;
 		} else {
+			$('#nonlinked').html('only non-linked');
 			nonlinked = false;
 		}
 		$.cookie('nonlinked_filter', nonlinked);
@@ -235,13 +245,18 @@
 						if (current && 'filter' in data){
 							current = $(selectedFilter).not(data['filter']).length == 0 && $(data['filter']).not(selectedFilter).length == 0;
 						}
+						
+						var foundLinkedInPreviousLoop = false;	// boolean to identify that a linked entity was found in previous loop
 						if (current && 'data' in data){		
-								// console.log(data);
+								
 								var basicProperties = data['data'];
+								
 								$('#instances tr').each(function(i){
 									
 									if (i > 0){
-										var first = $(this).first().children().first();
+										var first;
+									
+										first = $(this).first().children().first();
 										// console.log(first);
 																				
 										var id = first.children().attr('data-uri-long');	
@@ -280,22 +295,42 @@
 										// set same as links
 										first = first.next();
 										first.css("text-align","center");
-										var sameAs='';									
+										var sameAs='';	
+										var sameAsImg = '<img style="height: 19px; width: 25px; margin-right:5px;" src="@routes.Assets.at("/images/DBpedia-small.png")" alt=""/>';
+										var currentClassForToolTip='';
 										for(var j=0; j<basicProperties[id]['same_as'].length; j++) {
 											if(basicProperties[id]['same_as'][j].indexOf('dbpedia') != -1) {
-												var sameAsImg = '<img style="height: 19px; width: 25px; margin-right:5px;" src="@routes.Assets.at("/images/DBpedia-small.png")" alt=""/>';
-												var sameAsURL = basicProperties[id]['same_as'][j];
-												var sameAsClass = sameAsURL.replace(/[^a-zA-Z 0-9]+/g,'');												
-												sameAs='<a data-placement="left" rel="popver" class="' + sameAsClass + ' popover-link" href="#">' + sameAsImg + '</a>'+sameAs;											
-												popoverContent[popoverContent.length] = new Array(sameAsClass, sameAsURL, 'dbpedia');
-											} 
+												setValues(id, j, 'dbpedia');			
+											}
+											else if(basicProperties[id]['same_as'][j].indexOf('isis') != -1)
+											{
+												setValues(id, j, 'isis');
+											}
 											/*
 											else if(basicProperties[id]['same_as'][j].indexOf('inpho') != -1) {
 												sameAs+='<a title="'+basicProperties[id]['same_as'][j]+'" href="'+basicProperties[id]['same_as'][j]+'"><img style="height: 31px; width: 25px; margin-right:5px;" src="@routes.Assets.at("/images/Indiana-small.png")" alt=""/></a>'
 											}
 											*/ 
 										}
-
+										
+										
+									
+										function setValues(id, j, repo)
+										{
+											var sameAsURL = basicProperties[id]['same_as'][j];
+											var sameAsClass = sameAsURL.replace(/[^a-zA-Z 0-9]+/g,'');	
+											popoverContent[popoverContent.length] = new Array(sameAsClass, sameAsURL, repo);
+											if(sameAs=='')
+											{
+												sameAs='<a data-placement="left"  data-html="true" rel="popver"  class="' + sameAsClass + ' popover-link"  href="#">' + sameAsImg + '</a>';	
+												//sameAs='<a data-placement="left" rel="popver" class="' + sameAsClass + ' popover-link" href="#" title='+ popoverContent[0][1] +'>' + sameAsImg + '</a>';
+												currentClassForToolTip = sameAsClass;
+												
+											}
+											
+										}
+										
+										
 										var isEntityLinked="";
 										isEntityLinked= true;
 										if(basicProperties[id]['same_as'].toString().indexOf('dbpedia') == -1) {
@@ -310,8 +345,10 @@
 										}
 										*/
 									
+										
 										first.html(sameAs);
 										for  (i = 0; i < popoverContent.length; i++){
+										
 											var sameAsURL = popoverContent[i][1];
 											var content = '<ul><li><a href="' + sameAsURL + '">external resource</a></li>';
 											content += '<li><a href="enhance/' + short_id + '/' + popoverContent[i][2] +'">enhancer</a></li>';
@@ -322,10 +359,7 @@
 											  });   
 											$("." + popoverContent[i][0]).popover({ title: 'Go to the...', html: true, content: content });
 										}
-										
-										
-									
-										 
+																			 
 										
 										// set top_link
 										first = first.next();
@@ -333,46 +367,83 @@
 										var modified_short_id = short_id.replace( /(:|\.|\[|\])/g, "_" );
 										 var progressBar = '<div class="progress progress-striped active"><div id="linkerprogressbarBulk'+modified_short_id+'" class="bar" style="width: 0%;">0%</div></div>';
 										 first.html(progressBar);
+										 var currentElement = $(this);
+										 currentElement.attr('data-toggle-count',toggleCount);
 										 $.get(url).success(
-													   function(id){
+													   function(id){  
 													   var intervalId=setInterval(function getPercentage()
 													    {
-													        $.ajax({
+														 //  console.log("before clearing interval toggle count : "+currentElement.attr('data-toggle-count'));
+														  // console.log("global count"+toggleCount);
+														   if(currentElement.attr('data-toggle-count') != toggleCount)
+														   {
+															   // kill actors here
+															   console.log("clearing interval data-toggle count : "+currentElement.attr('data-toggle-count'));
+															   clearInterval(intervalId);
+															   
+															   
+															   return false;
+														   }
+														   
+														        $.ajax({
 													            type: "GET",
 													            url: "/statusOnSamePage/"+id,
 													            dataType: "html",
 													            success: function(value)
 													                {
-													            		var data = value.split("#!#");
+													               		var data = value.split("#!#");
 													 
-													            		if(data.length==3) {
+													            		if(data.length==3 && $('#linkerprogressbarBulk'+modified_short_id)) {
 													            	       	$('#linkerprogressbarBulk'+modified_short_id).html(data[1]+"%");
 													                      	document.getElementById('linkerprogressbarBulk'+modified_short_id).style.width=data[1]+'%';
 													            		} else {
 													            			var showMoreData = data[0].split("!##!")[1];
 													            			var topData = data[0].split("!##!")[0];
+													          
+													            			var tooltipSameAsContentValues= data[0].split("!##!")[2];
+													            			var toolTipContentsArray = [];
+													            			if(tooltipSameAsContentValues)
+													            			{
+													            				toolTipContentsArray = tooltipSameAsContentValues.split(",");
+													         					//console.log(toolTipContentsArray +"---"+ typeof toolTipContentsArray);
+													            			
+													            				toolTipContentsArray[0] = toolTipContentsArray[0].replace("[[","");
+													         					toolTipContentsArray[toolTipContentsArray.length-1] = toolTipContentsArray[toolTipContentsArray.length-1].replace("]]","");
+													         				}
+													            			var popOvercontents = ""
+													            			for(var i=0; i<toolTipContentsArray.length; i++)
+													            			{
+													            				toolTipContentsArray[i]=toolTipContentsArray[i].replace("<","");
+													            				toolTipContentsArray[i]=toolTipContentsArray[i].replace(">","");
+													            				toolTipContentsArray[i]="<b><a href='"+toolTipContentsArray[i]+"' style='color: #FFFFFF; text-decoration: none;' target='_blank'>"+toolTipContentsArray[i]+"</a></b>";
+													            			}
+													          
 													            			var top_link_content = 	"<div><div id='"+topData+"' class='alert alert-success drag' style='cursor:pointer;'><span style='font-weight:bold'>"+topData+"</span>";
 													            			
+														        			//set tooltip of image icon
+														        			if(currentClassForToolTip!='' && $('.'+currentClassForToolTip))
+														        				$('.'+currentClassForToolTip).attr('title',toolTipContentsArray);
+														        			
 														        			
 													    					if(topData!="No suggestions found!" && topData!="Oh snap! An error occured!")
 													    					{	top_link_content = top_link_content+"<span style='float: right;'><button type=\"button\" class=\"btn btn-mini btn-info\" id=\"button-"+topData+"\" onclick=\"showMore('" + topData + "', this)\" data-toggle=\"button\" rel=\"popover\" data-html=\"true\"  data-content=\""+showMoreData+"\" data-original-title=\"Description\" data-placement=\"bottom\">Show more</button></span>";				   				
-													    						top_link_content = top_link_content + '</div><div id="content-'+topData+'" style="padding: 0 1.5em; display:none;"></div>';
+													    						top_link_content = top_link_content + '<div id="content-'+topData+'" style="padding: 0 1.5em; display:none;"></div>';
 													    					}
 													        				
-													    					first.html(top_link_content+"</div>");
+													    					first.html(top_link_content+"</div></div>");
 													          	            if(isEntityLinked)
 													          	            	first.next().html("<div>Linked!</div>");
-													          	          //  else if(topData!="No suggestions found!" && topData!="Oh snap! An error occured!")
-													          	         	//	first.next().html("<input type='checkbox' class ='linkerCheckBox' data-source-id="+short_id+" data-target-id='"+topData+"' name ='checkBoxes' />");
-													          	          else
+													          	            else if(topData!="No suggestions found!" && topData!="Oh snap! An error occured!")
+													          	         		first.next().html("<input type='checkbox' class ='linkerCheckBox' data-source-id="+short_id+" data-target-id='"+topData+"' name ='checkBoxes' />");
+													          	          /*  else
 													          	        	  {
-													          	        	/* var dropDownData = '<span class="dropdown">';
+													          	        	var dropDownData = '<span class="dropdown">';
 													          	        	dropDownData = dropDownData + '<a id="linker-relation-uri-instance"'+topData+' class="dropdown-toggle" role="button" data-placement="bottom" data-toggle="dropdown" data-toggle2="tooltip" data-target="#" href="#" data-uri-short="" data-uri-long="" title="<b><a href=\'http://www.w3.org/2002/07/owl#sameAs\' style=\'color: #FFFFFF; text-decoration:none;\' target=\'_blank\'>owl:sameAs</a></b>">';
 													          	        	dropDownData = dropDownData + '<span id="linker-relation-text-instance"'+topData+'  class="text-success" style="padding-left:5px;">is same as</span>';
 													          	        	dropDownData = dropDownData + '<b class="caret"></b></a>@linkerDropdown("instance",settings.Settings.REL_INSTANCE)</span>';
-													        				first.next().html(dropDownData); */
+													        				first.next().html(dropDownData); 
 													        			
-													          	        	  }
+													          	        	  } */
 													          	            clearInterval(intervalId);
 													          	           }
 													                }
@@ -428,20 +499,21 @@
 	}
 	
 	function objectToToolTipList(object, namespace){
+		
 		var keys = Object.keys(object);
 		var result = '';
-									
+							
 		for(var i=0; i<keys.length; i++) {
 			var key = keys[i];
 			var values = object[key];
 			
 			var prefix = key.substring(0, key.indexOf(':'));
 			var localname = key.substring(key.indexOf(':')+1);
-			
+		
 			//console.log(key + ' ' + values);
 			if (typeof values !== "string"){
 				for(var j=0; j<values.length; j++) {
-					result+= '<a href="#" class="onlyTooltip" data-toggle="tooltip" data-placement="top" title="' + toHtmlLinkShort(namespace[prefix]+localname, key) + '">'+values[j]+'</a>';
+					result+= '<a href="#" class="onlyTooltip" data-toggle="tooltip" data-placement="top"  title="' + toHtmlLinkShort(namespace[prefix]+localname, key) + '">'+values[j]+'</a>';
 					if(j<(values.length-1)|| i <keys.length-1) {
 						result+=", ";
 					}
@@ -486,13 +558,14 @@
 					filterUsed = true;
 				}
 			}
-			// console.log(filterUsed);				
+			 console.log('filterUsed: '+filterUsed);				
 			if (filterUsed){
 				$(".filter").each(function(){
 			        if ($(this).hasClass("badge-info")){
 						$(this).removeClass("badge-info");
 					};
 					var value = $(this).attr('data-value');
+					 console.log('value: '+value);
 					if (activeFilter.indexOf(value) != -1){
 						$(this).addClass("badge-success");
 					}
@@ -508,6 +581,7 @@
 	
 	// cleans up the active filter array
 	function rebuildActiveFilter(){
+		console.log('in rebild'+activeFilter+' ..');
 		var temp = new Array();
 		var z = 0;
 		for (var i = 0; i <= activeFilter.length; i++) {
@@ -522,6 +596,7 @@
 			}
 		}
 		activeFilter = temp;
+		console.log('after in rebild'+activeFilter+' ..');
 		$.cookie('search_filter', activeFilter);
 		return activeFilter;
 	}

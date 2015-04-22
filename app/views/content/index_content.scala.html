@@ -138,9 +138,6 @@
 			  .error(function(jqXHR, textStatus, errorThrown) {
 				  $('#conceptFilter .progress').removeClass('active progress-striped');
 				    var errormsg="Could not load concept filter";
-				    
-				   
-
 				    $('#conceptFilter .bar').addClass('bar-danger').text(errormsg);
 				    return false;
 			  });
@@ -195,8 +192,7 @@
 	    })
 		  .error(function(jqXHR, textStatus, errorThrown) {
 			  $('#instances .progress').removeClass('active progress-striped');
-			    var errormsg="Could not load concepts";
-			    
+			    var errormsg="Could not load concepts";	    
 			    
 			    $('#instances .bar').addClass('bar-danger').text(errormsg);
 			    return false;
