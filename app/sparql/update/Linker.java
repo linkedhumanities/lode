@@ -79,15 +79,17 @@ public class Linker
 			switch(method) {
 
 			case 0:
-
+				// select all candidates with searchTerm in abstract
 				candidates = (Sparql.select("SELECT ?i ?d WHERE { ?i <http://dbpedia.org/ontology/abstract> ?d . ?d <bif:contains> \"'" + searchterm
 						+ "'\" . FILTER (lang(?d)='en') . MINUS{?i rdf:type <http://www.w3.org/2004/02/skos/core#Concept>} . MINUS{?i rdf:type <http://www.w3.org/2002/07/owl#DatatypeProperty>} . }", Endpoint.DBPEDIA));
-
+				// select all candidates with searchTerm in label
 				candidates.addAll(Sparql.select("SELECT ?i ?d WHERE { ?i <http://www.w3.org/2000/01/rdf-schema#label> ?d . ?d <bif:contains> \"'" + searchterm
 						+ "'\" . FILTER (lang(?d)='en') . MINUS{?i rdf:type <http://www.w3.org/2004/02/skos/core#Concept>} . MINUS{?i rdf:type <http://www.w3.org/2002/07/owl#DatatypeProperty>} . }", Endpoint.DBPEDIA));
+				// iterate through cnadidates
 				for(QuerySolution candidate : candidates) {
 
 					try{
+						// if the candidate is a dbpedia link it, but there is no else to link across datasets!
 						if(candidate.getResource("?i").toString().contains("http://dbpedia.org/resource")) {
 							EntityContainer proposal = new EntityContainer(candidate.getResource("?i"));
 
