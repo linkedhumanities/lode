@@ -31,7 +31,7 @@ public class Sparql
     public static List<QuerySolution> select(String request, Endpoint endpoint) throws QueryExceptionHTTP
     {
         QueryExecution qexec = Sparql.prepare(request, endpoint);
-       
+
         List<QuerySolution> result = null;
 
         ResultSet results = null;
@@ -47,8 +47,6 @@ public class Sparql
                 result = new LinkedList<>();
             } else {
                 System.out.println("SPARQL crash! \n"+ report);
-                System.out.println("endpoint :"+endpoint.getDestination());
-                System.out.println("---------query :"+qexec.getQuery().serialize());
                 throw e;
             }
         }
