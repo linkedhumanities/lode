@@ -23,7 +23,7 @@ public class StringUtils
 
 	public static Set<String> generateNames(Set<String> data)
 	{
-		// adding data 'as it is' into the result set
+		// adding data as it is into the result set
 		Set<String> temp = new HashSet<>();
 		temp.addAll(data);
 		//System.out.println("data!------------------------"+data+ "size : "+data.size());
@@ -89,7 +89,9 @@ public class StringUtils
 			}
 		}
 
-		//System.out.println("result!------------------------"+result);
+		/* System.out.println("result!------------------------");
+		for(String res: result)
+			System.out.println(res); */
 		return result;
 
 
@@ -132,6 +134,7 @@ public class StringUtils
 	public static boolean validName(String name)
 	{
 		String tmp = name.replaceAll("(!|\"|§|[$]|%|&|\\/|\\(|\\)|[\\[]|[\\]]|[\\{]|[\\}]|=|[?]|<|>|[|]|[\\^]|°|'|#|[*]|~|,|[+]|´|`|[.]|_| )", "");
+
 		if(tmp.trim().length() == 0) { return false; }
 
 		return true;

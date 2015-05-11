@@ -69,7 +69,6 @@ public class Concept
      */
     public static Map<Resource, Integer> searchConcepts(String keyword, List<String> activeFilter, boolean nonlinked) throws QueryExceptionHTTP
     {
-    	System.out.println("1 active filter in coontroller : "+activeFilter);
         Map<Resource, Integer> result = new LinkedHashMap<>();
         List<QuerySolution> data = new LinkedList<QuerySolution>();
 
@@ -101,7 +100,6 @@ public class Concept
             }
         }
 
-        System.out.println("2 active filter in coontroller : "+activeFilter);
         for(QuerySolution entry : data) {
             try {
                 Resource key = entry.getResource("?concept");
@@ -118,11 +116,9 @@ public class Concept
                 continue;
             }
         }
-        System.out.println("3 active filter in coontroller : "+activeFilter);
         for(String s : activeFilter) {
             result.put(ResUtils.createResource(s), 0);
         }
-        System.out.println("4 active filter in coontroller : "+activeFilter);
         return MapUtils.sortByValue(result, false);
     }
 

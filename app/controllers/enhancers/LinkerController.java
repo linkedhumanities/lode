@@ -154,7 +154,6 @@ public class LinkerController extends Controller
     public static Promise<Result> status(String uuid)
     {
         try {
-        	//System.out.println(uuid);
             uuid = "akka://application/user/" + uuid;
             ActorSelection selection = Akka.system().actorSelection(uuid);
             AskableActorSelection asker = new AskableActorSelection(selection);

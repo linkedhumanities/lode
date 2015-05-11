@@ -51,6 +51,8 @@ public class Linker
 			cache.put(key, new HashMap<EntityContainer, Float>());
 		}
 		Map<EntityContainer, Float> proposals = cache.get(key);
+		
+		
 
 		// loads similar instances (dbpedia) and calculates the weight (levenshtein)
 		EntityContainer localInstance = Content.getEntityContainerbyID(id);
@@ -93,10 +95,8 @@ public class Linker
 						if(candidate.getResource("?i").toString().contains("http://dbpedia.org/resource")) {
 							EntityContainer proposal = new EntityContainer(candidate.getResource("?i"));
 
-							// ??? weighting between proposal and searchterm ( why name? & not searchterm? )
 							Float weight = ls.getSimilarity(name.toLowerCase(), ResUtils.getLocaleName(proposal.getURI().getValue().replace("_", " ")).toLowerCase());
 
-							//----------------------------------- additional weight factor added.. not yet finalized-----------------------------
 							// readableNames --> original names set
 							for(String tempName : readableNames)
 							{
@@ -109,47 +109,11 @@ public class Linker
 									//if nameCombo is equal to current search term
 									if(name.toLowerCase().equals(nameCombo.toLowerCase()))
 									{
-										//System.out.println("-------------------nameCombo!!"+nameCombo);
 										nameCombo = nameCombo.replaceAll("[^a-zA-Z ]", "").toLowerCase();
-										//System.out.println("--------after replace!!"+nameCombo);
 										weight = weight * ls.getSimilarity(tempName.toLowerCase(),nameCombo);
-										}
+									}
 								}
 							}
-							 
-					
-
-
-							//---------------------------------------------------------------------------------------------------------
-
-
-
-
-							//----------------------------------- originally present ------------------------------------------------------
-
-							/*   if(!localInstance.getReadableNames().contains(name)) {
-                         //   	System.out.println("runs here  : "+name+" ..... localInstance.getReadableNames() : "+localInstance.getReadableNames() +"size : "+localInstance.getReadableNames().size());
-                                weight = weight * (7.0f / 8.0f);
-                            }    */
-							//---------------------------------------------------------------------------------------------------------
-
-
-
-
-							//----------------------------------- tried modifying originally present above code-----------------------------                                                       
-							//----------------------------------- modified the set to make all its strings lower case. This would prevent the execution of many cases in below if condition
-							//  ---------------------------------did this to test if it gave better results-----------------------------
-
-							/*       Set<String> tempLowerCaseNames = new HashSet<>();
-                            for(String str : localInstance.getReadableNames())
-                            	tempLowerCaseNames.add(str.toLowerCase());
-
-                            if(!tempLowerCaseNames.contains(name)) {
-                            	System.out.println("runs here  : "+name+" ..... tempLowerCaseNames : "+tempLowerCaseNames +"size : "+tempLowerCaseNames.size());
-                                weight = weight * (7.0f / 8.0f);
-                            }
-							 */
-							//---------------------------------------------------------------------------------------------------------
 
 							if(proposals.containsKey(proposal) && proposals.get(proposal) > weight) {
 								continue;
@@ -157,6 +121,7 @@ public class Linker
 
 							
 							proposals.put(proposal, weight);
+							
 						}
 						
 					}
@@ -313,14 +278,19 @@ public class Linker
 	public static boolean hasRelation(Value uri1, Value uri2) throws QueryExceptionHTTP
 	{
 		// search relation
-		List<QuerySolution> result = Sparql.select("SELECT * { " + uri2.toSparql() + " <" + "owl:sameAs" + "> " + uri1.toSparql() + " }", Endpoint.LOCAL);
-		if(result.size() > 0) { return true; }
-
-		return false;
+		return Sparql.ask("ASK { " + uri2.toSparql().replace(",", "") + " owl:sameAs " + uri1.toSparql().replace(",", "") + " }", Endpoint.LOCAL);
+		
+	}
+	
+	public static boolean hasDifferentFromRelation(Value uri1, Value uri2) throws QueryExceptionHTTP
+	{
+		// search relation
+		return Sparql.ask("ASK { " + uri2.toSparql().replace(",", "") + " owl:differentFrom "+ uri1.toSparql().replace(",", "") + " }", Endpoint.LOCAL);
+		
 	}
 
 
-	private static int validate(String key, EntityContainer localInstance, EntityContainer proposal, Endpoint source)
+ static int validate(String key, EntityContainer localInstance, EntityContainer proposal, Endpoint source)
 	{
 		// cache
 		Map<EntityContainer, Float> proposals = cache.get(key);
@@ -328,6 +298,9 @@ public class Linker
 		// duplicates
 		if(instanceURIs.containsKey(ResUtils.createShortURI(proposal.getURI().getValue())) || proposal.equals(localInstance) || hasRelation(proposal.getURI(), localInstance.getURI())) { return 0; }
 
+		// differentFrom
+		if(hasDifferentFromRelation(proposal.getURI(), localInstance.getURI())) { return 0; }
+		
 		// disambiguates
 		if(!blacklist.contains(proposal.getURI().getValue())) {
 			List<Value> disambiguates = ResUtils.getDisambiguates(proposal.getURI());
