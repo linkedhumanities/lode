@@ -32,7 +32,7 @@ public class Sparql
     {
     	
         QueryExecution qexec = Sparql.prepare(request, endpoint);
-       
+
         List<QuerySolution> result = null;
 
         ResultSet results = null;

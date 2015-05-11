@@ -109,12 +109,14 @@ public class MainController extends Controller
     {
         try {
             Map<String, String[]> req = request().queryString();
-            Map<String, Object> response = new HashMap<>();
+
+             Map<String, Object> response = new HashMap<>();
 
             // query
             String query = req.get("query")[0] != null ? req.get("query")[0].trim() : "";
             response.put("query", query);
 
+            
             // page
             int page = req.get("page")[0] != null ? Integer.valueOf(req.get("page")[0]) : 1;
             response.put("page", String.valueOf(page));
@@ -123,6 +125,8 @@ public class MainController extends Controller
             boolean nonlinked = req.get("nonlinked")[0] != null ? Boolean.valueOf(req.get("nonlinked")[0]) : false;
             response.put("nonlinked", String.valueOf(nonlinked));
 
+
+          
             // filter and instances
             Set<EntityContainer> result = new TreeSet<>();
             if(!req.containsKey("filter[]")) {
@@ -133,6 +137,7 @@ public class MainController extends Controller
                 result.addAll(Content.searchContent(query, filter, page, nonlinked));
             }
 
+            
             if(!result.isEmpty()) {
                 response.put("main", content_index_indiviudals.render(new ArrayList<>(result), page).toString());
                 response.put("lastPage", String.valueOf(false || (result.size() < Settings.I_PAGE_SIZE)));

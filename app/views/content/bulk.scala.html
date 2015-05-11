@@ -71,9 +71,7 @@
 	}
 	
 	if (typeof $.cookie('search_filter') !== 'undefined'){	
-		console.log('here!- '+$.cookie('search_filter'));
 		activeFilter = $.cookie('search_filter').split(",");
-		console.log('activeFilter!- '+activeFilter);
 		updateStatus();
 	}	
 	
@@ -90,7 +88,7 @@
 		
 	function initSearch() {
 		var query =$(this).val();
-		
+	
 		// add penalty to reduce number of queries
 		var penalty = 0;
 		var temp = 'concept:'
@@ -98,6 +96,7 @@
 		if (temp.substring(0, end) === query.substring(0, end)){
 			penalty = temp.length;
 		}
+		
 		
 		if (query.length >= startToSearch+penalty && query.length != lastLength){
 		  	lastLength = query.length;
@@ -238,7 +237,6 @@
 				ids[i-1] = id;				
 			}
 		});
-		//console.log('ID: ' + ids);
 		$.get("/content/basicProperties", { id: ids, query : query,filter : filter, nonlinked: nonlinked}).success( function(data){
 						var current = (lastQuery == data['query'] && nonlinked === JSON.parse(data['nonlinked']));
 						var selectedFilter = rebuildActiveFilter();
@@ -257,7 +255,6 @@
 										var first;
 									
 										first = $(this).first().children().first();
-										// console.log(first);
 																				
 										var id = first.children().attr('data-uri-long');	
 										var short_id = first.children().text();
@@ -373,8 +370,6 @@
 													   function(id){  
 													   var intervalId=setInterval(function getPercentage()
 													    {
-														 //  console.log("before clearing interval toggle count : "+currentElement.attr('data-toggle-count'));
-														  // console.log("global count"+toggleCount);
 														   if(currentElement.attr('data-toggle-count') != toggleCount)
 														   {
 															   // kill actors here
@@ -405,7 +400,6 @@
 													            			if(tooltipSameAsContentValues)
 													            			{
 													            				toolTipContentsArray = tooltipSameAsContentValues.split(",");
-													         					//console.log(toolTipContentsArray +"---"+ typeof toolTipContentsArray);
 													            			
 													            				toolTipContentsArray[0] = toolTipContentsArray[0].replace("[[","");
 													         					toolTipContentsArray[toolTipContentsArray.length-1] = toolTipContentsArray[toolTipContentsArray.length-1].replace("]]","");
@@ -510,7 +504,6 @@
 			var prefix = key.substring(0, key.indexOf(':'));
 			var localname = key.substring(key.indexOf(':')+1);
 		
-			//console.log(key + ' ' + values);
 			if (typeof values !== "string"){
 				for(var j=0; j<values.length; j++) {
 					result+= '<a href="#" class="onlyTooltip" data-toggle="tooltip" data-placement="top"  title="' + toHtmlLinkShort(namespace[prefix]+localname, key) + '">'+values[j]+'</a>';
@@ -557,15 +550,13 @@
 				if (activeFilter[i] !== undefined ){
 					filterUsed = true;
 				}
-			}
-			 console.log('filterUsed: '+filterUsed);				
+			}		
 			if (filterUsed){
 				$(".filter").each(function(){
 			        if ($(this).hasClass("badge-info")){
 						$(this).removeClass("badge-info");
 					};
 					var value = $(this).attr('data-value');
-					 console.log('value: '+value);
 					if (activeFilter.indexOf(value) != -1){
 						$(this).addClass("badge-success");
 					}
@@ -581,7 +572,6 @@
 	
 	// cleans up the active filter array
 	function rebuildActiveFilter(){
-		console.log('in rebild'+activeFilter+' ..');
 		var temp = new Array();
 		var z = 0;
 		for (var i = 0; i <= activeFilter.length; i++) {
@@ -596,7 +586,6 @@
 			}
 		}
 		activeFilter = temp;
-		console.log('after in rebild'+activeFilter+' ..');
 		$.cookie('search_filter', activeFilter);
 		return activeFilter;
 	}
